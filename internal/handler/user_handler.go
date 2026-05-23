@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
@@ -12,8 +14,12 @@ type UserHandler struct {
 	service service.CrudService[domain.User]
 }
 
-func NewUserHandler(service service.CrudService[domain.User]) *UserHandler {
-	return &UserHandler{service: service}
+type userRequest struct {
+	Hey string `json:"hey"`
+}
+
+func NewUserHandler() *UserHandler {
+	return &UserHandler{service: nil}
 }
 
 func (h *UserHandler) Routes(mux *http.ServeMux) {
@@ -21,5 +27,12 @@ func (h *UserHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	slog.Info("Received request: %s %s", r.Method, r.URL.Path)
+
+	var userRequest userRequest
+	helper.ReadJSON(r, &userRequest)
+
+	log.Printf("Parsed request body: %+v", userRequest)
+
 	helper.WriteJSON(w, http.StatusCreated, map[string]any{"data": "somethings"})
 }
