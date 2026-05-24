@@ -23,7 +23,7 @@ func NewUserRepo(db *mongo.Database) CrudRepository[domain.User] {
 func (u *mongoUserRepo) Create(ctx context.Context, item domain.User) (*domain.User, error) {
 
 	item.ID = primitive.NewObjectID()
-	item.CreatedAt = time.Now()
+	item.CreatedAt = time.Now().UTC()
 
 	_, err := u.collection.InsertOne(ctx, item)
 	if err != nil {
