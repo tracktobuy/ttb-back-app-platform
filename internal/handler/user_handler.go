@@ -43,6 +43,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		UUID:     userRequest.UUID,
 		Name:     userRequest.Name,
 		Username: userRequest.Username,
+		Version:  1,
 	}
 
 	user, err := h.service.Create(context.Background(), item)
