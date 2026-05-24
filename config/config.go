@@ -8,9 +8,9 @@ import (
 )
 
 type Config struct {
-	MongoURI        string
-	MongoDB         string
-	MongoServerPort string
+	MongoURI      string
+	MongoDB       string
+	ApiServerPort string
 }
 
 func LoadConfig() *Config {
@@ -20,8 +20,8 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		MongoURI:        os.Getenv("MONGO_URI"),
-		MongoDB:         os.Getenv("MONGO_DB"),
-		MongoServerPort: os.Getenv("MONGO_SERVER_PORT"),
+		MongoURI:      os.Getenv("MONGO_URI"),
+		MongoDB:       os.Getenv("MONGO_DB"),
+		ApiServerPort: os.Getenv("API_SERVER_PORT"),
 	}
 }
