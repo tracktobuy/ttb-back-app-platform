@@ -3,14 +3,14 @@ module github.com/tracktobuy/ttb-back-app-platform
 go 1.26.2
 
 require (
-	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver v1.17.9
-	go.mongodb.org/mongo-driver/v2 v2.6.0
 )
 
 require (
-	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
+	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.2.0 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
