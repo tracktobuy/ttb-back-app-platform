@@ -25,7 +25,7 @@ func (s *userService) Get(ctx context.Context, id string) (*domain.User, error) 
 	return nil, nil
 }
 
-func (s *userService) GetAll(ctx context.Context) ([]*domain.User, error) {
+func (s *userService) GetAll(ctx context.Context) ([]domain.User, error) {
 	return nil, nil
 }
 
