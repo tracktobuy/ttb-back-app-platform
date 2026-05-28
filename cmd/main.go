@@ -26,10 +26,16 @@ func main() {
 
 	db := client.Database(cfg.MongoDB)
 
-	repository := repository.NewUserRepo(db)
-	service := service.NewUserService(repository)
-	userHandler := handler.NewUserHandler(service)
+	userRepository := repository.NewUserRepo(db)
+	userService := service.NewUserService(userRepository)
+	userHandler := handler.NewUserHandler(userService)
 	userHandler.Routes(mux)
+
+	groupRepository := repository.NewGroupRepo(db)
+	groupService := service.NewGroupServiceImplementation(groupRepository)
+
+	accountHandler := handler.NewAccountHandler(ctx, userService, groupService)
+	accountHandler.RegisterRoutes(mux)
 
 	log.Printf("Server is running on port %s", ":8080")
 	http.ListenAndServe(":8080", mux)
