@@ -2,17 +2,18 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 )
 
 type accountService struct {
-	userService  *userService
-	groupService *groupService
+	userService  CrudService[domain.User]
+	groupService GroupService
 	ctx          context.Context
 }
 
-func NewAccountService(ctx context.Context, userService *userService, groupService *groupService) *accountService {
+func NewAccountService(ctx context.Context, userService CrudService[domain.User], groupService GroupService) *accountService {
 	return &accountService{
 		userService:  userService,
 		groupService: groupService,
@@ -20,13 +21,19 @@ func NewAccountService(ctx context.Context, userService *userService, groupServi
 	}
 }
 
-func (s *accountService) CreateAccount(user domain.User) error {
+func (s *accountService) CreateAccount(user domain.User) (*domain.User, *domain.Group, error) {
 
-	_, err := s.userService.Create(s.ctx, user)
+	newUser, err := s.userService.Create(s.ctx, user)
 	if err != nil {
-		return err
+		slog.Error("Error when creating new user account", err)
+		return nil, nil, err
 	}
 
-	return nil
+	newGroup, err := s.groupService.CreateDefaultGroup(s.ctx, *newUser)
+	if err != nil {
+		slog.Error("Error when creating default group to user", err)
+		return nil, nil, err
+	}
 
+	return newUser, newGroup, nil
 }
