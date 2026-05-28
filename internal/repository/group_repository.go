@@ -23,6 +23,7 @@ func NewGroupRepo(db *mongo.Database) CrudRepository[domain.Group] {
 func (g *mongoGroupRepo) Create(ctx context.Context, item domain.Group) (*domain.Group, error) {
 
 	item.ID = primitive.NewObjectID()
+	item.Version = 1
 	item.CreatedAt = time.Now().UTC()
 
 	_, err := g.collection.InsertOne(ctx, item)
