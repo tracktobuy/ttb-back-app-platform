@@ -8,43 +8,48 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 )
 
-type GroupService struct {
+type GroupServiceInterface interface {
+	CrudService[domain.Group]
+	CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error)
+}
+
+type groupService struct {
 	repo repository.CrudRepository[domain.Group]
 }
 
-func NewGroupService(repo repository.CrudRepository[domain.Group]) CrudService[domain.Group] {
-	return &GroupService{
+func NewGroupService(repo repository.CrudRepository[domain.Group]) GroupServiceInterface {
+	return &groupService{
 		repo: repo,
 	}
 }
 
-func NewGroupServiceImplementation(repo repository.CrudRepository[domain.Group]) GroupService {
-	return GroupService{
+func NewGroupServiceImplementation(repo repository.CrudRepository[domain.Group]) GroupServiceInterface {
+	return &groupService{
 		repo: repo,
 	}
 }
 
-func (s *GroupService) Create(ctx context.Context, item domain.Group) (*domain.Group, error) {
+func (s *groupService) Create(ctx context.Context, item domain.Group) (*domain.Group, error) {
 	return s.repo.Create(ctx, item)
 }
 
-func (s *GroupService) Get(ctx context.Context, id string) (*domain.Group, error) {
+func (s *groupService) Get(ctx context.Context, id string) (*domain.Group, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *GroupService) GetAll(ctx context.Context) ([]domain.Group, error) {
+func (s *groupService) GetAll(ctx context.Context) ([]domain.Group, error) {
 	return s.repo.GetAll(ctx)
 }
 
-func (s *GroupService) Update(ctx context.Context, id string, item domain.Group) (*domain.Group, error) {
+func (s *groupService) Update(ctx context.Context, id string, item domain.Group) (*domain.Group, error) {
 	return nil, nil
 }
 
-func (s *GroupService) Delete(ctx context.Context, id string) error {
+func (s *groupService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *GroupService) CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error) {
+func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error) {
 
 	value, err := uuid.NewV7()
 	if err != nil {
