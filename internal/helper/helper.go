@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, data any) error {
@@ -36,4 +38,12 @@ func BadRequest(w http.ResponseWriter, err error) {
 func InternalServerError(w http.ResponseWriter, err error) {
 	slog.Error("Internal server error: %+v", err)
 	WriteJSON(w, http.StatusInternalServerError, map[string]any{"error": "Internal Server Error"})
+}
+
+func ReadParam(r *http.Request, key string) string {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	id := params.ByName("id")
+
+	return id
 }
