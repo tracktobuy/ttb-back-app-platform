@@ -9,11 +9,11 @@ import (
 
 type accountService struct {
 	userService  CrudService[domain.User]
-	groupService GroupService
+	groupService GroupServiceInterface
 	ctx          context.Context
 }
 
-func NewAccountService(ctx context.Context, userService CrudService[domain.User], groupService GroupService) *accountService {
+func NewAccountService(ctx context.Context, userService CrudService[domain.User], groupService GroupServiceInterface) *accountService {
 	return &accountService{
 		userService:  userService,
 		groupService: groupService,
@@ -25,13 +25,13 @@ func (s *accountService) CreateAccount(user domain.User) (*domain.User, *domain.
 
 	newUser, err := s.userService.Create(s.ctx, user)
 	if err != nil {
-		slog.Error("Error when creating new user account", err)
+		slog.Error("Error when creating new user account", "error", err.Error())
 		return nil, nil, err
 	}
 
 	newGroup, err := s.groupService.CreateDefaultGroup(s.ctx, *newUser)
 	if err != nil {
-		slog.Error("Error when creating default group to user", err)
+		slog.Error("Error when creating default group to user", "error", err.Error())
 		return nil, nil, err
 	}
 

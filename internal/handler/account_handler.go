@@ -14,12 +14,12 @@ import (
 type accountHandler struct {
 	ctx          context.Context
 	userService  service.CrudService[domain.User]
-	groupService service.GroupService
+	groupService service.GroupServiceInterface
 }
 
 func NewAccountHandler(ctx context.Context,
 	userService service.CrudService[domain.User],
-	groupService service.GroupService) *accountHandler {
+	groupService service.GroupServiceInterface) *accountHandler {
 
 	return &accountHandler{
 		ctx:          ctx,
