@@ -11,19 +11,20 @@ import (
 type GroupServiceInterface interface {
 	CrudService[domain.Group]
 	CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error)
+	GetByUUID(ctx context.Context, uuid string) (*domain.Group, error)
 }
 
 type groupService struct {
-	repo repository.CrudRepository[domain.Group]
+	repo repository.GroupRepositoryInterface
 }
 
-func NewGroupService(repo repository.CrudRepository[domain.Group]) GroupServiceInterface {
+func NewGroupService(repo repository.GroupRepositoryInterface) GroupServiceInterface {
 	return &groupService{
 		repo: repo,
 	}
 }
 
-func NewGroupServiceImplementation(repo repository.CrudRepository[domain.Group]) GroupServiceInterface {
+func NewGroupServiceImplementation(repo repository.GroupRepositoryInterface) GroupServiceInterface {
 	return &groupService{
 		repo: repo,
 	}
@@ -42,7 +43,13 @@ func (s *groupService) GetAll(ctx context.Context) ([]domain.Group, error) {
 }
 
 func (s *groupService) Update(ctx context.Context, id string, item domain.Group) (*domain.Group, error) {
-	return nil, nil
+
+	group, err := s.repo.Update(ctx, item)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, err
 }
 
 func (s *groupService) Delete(ctx context.Context, id string) error {
@@ -65,4 +72,8 @@ func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User)
 	}
 
 	return s.repo.Create(ctx, defaultGroup)
+}
+
+func (s *groupService) GetByUUID(ctx context.Context, uuid string) (*domain.Group, error) {
+	return s.repo.GetByUUID(ctx, uuid)
 }

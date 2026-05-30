@@ -10,11 +10,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type GroupRepositoryInterface interface {
+	CrudRepository[domain.Group]
+	GetByUUID(ctx context.Context, uuid string) (*domain.Group, error)
+}
+
 type mongoGroupRepo struct {
 	collection *mongo.Collection
 }
 
-func NewGroupRepo(db *mongo.Database) CrudRepository[domain.Group] {
+func NewGroupRepo(db *mongo.Database) GroupRepositoryInterface {
 	return &mongoGroupRepo{
 		collection: db.Collection("groups"),
 	}
@@ -102,4 +107,15 @@ func (g *mongoGroupRepo) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (g *mongoGroupRepo) GetByUUID(ctx context.Context, uuid string) (*domain.Group, error) {
+	var group *domain.Group
+
+	err := g.collection.FindOne(ctx, bson.M{"uuid": uuid}).Decode(&group)
+	if err != nil {
+		return nil, err
+	}
+
+	return group, nil
 }
