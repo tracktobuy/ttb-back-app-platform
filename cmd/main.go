@@ -28,11 +28,16 @@ func main() {
 
 	userRepository := repository.NewUserRepo(db)
 	userService := service.NewUserService(userRepository)
-	userHandler := handler.NewUserHandler(userService)
-	userHandler.Routes(mux)
 
 	groupRepository := repository.NewGroupRepo(db)
 	groupService := service.NewGroupServiceImplementation(groupRepository)
+
+	// Handlers
+	userHandler := handler.NewUserHandler(userService)
+	userHandler.Routes(mux)
+
+	groupHandler := handler.NewGroupHandler(groupService)
+	groupHandler.Routes(mux)
 
 	accountHandler := handler.NewAccountHandler(ctx, userService, groupService)
 	accountHandler.RegisterRoutes(mux)

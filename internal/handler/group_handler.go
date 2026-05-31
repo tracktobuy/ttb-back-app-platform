@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
+	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
@@ -20,16 +22,31 @@ func NewGroupHandler(groupService service.GroupServiceInterface) *GroupHandler {
 }
 
 func (h *GroupHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("PUT /groups", h.Update)
+	mux.HandleFunc("PUT /groups/{groupId}", h.Update)
+	mux.HandleFunc("GET /groups/{groupId}", h.Get)
+}
+
+func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
+
+	groupId := r.PathValue("groupId")
+
+	group, err := h.service.Get(context.Background(), groupId)
+
+	if err != nil {
+		helper.WriteJSON(w, http.StatusNotFound, envelope{"message": "Group not found", "data": nil})
+		return
+	}
+
+	groupResponse := h.formatGroupResponse(group)
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": groupResponse})
 }
 
 func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
-	// 019e717e-7d9d-7529-9938-5e83bae19036
-	groupId := helper.ReadParam(r, "groupId")
-	group, err := h.service.GetByUUID(context.Background(), groupId)
+	groupId := r.PathValue("groupId")
+	group, err := h.service.Get(context.Background(), groupId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		helper.WriteJSON(w, http.StatusNotFound, envelope{"message": "Group not found", "data": nil})
 		return
 	}
 
@@ -37,7 +54,7 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = helper.ReadJSON(w, r, &updateRequest)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helper.WriteJSON(w, http.StatusBadRequest, envelope{"message": "Invalid request body", "data": nil})
 		return
 	}
 
@@ -45,13 +62,25 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 	group.Name = updateRequest.Name
 	group.Budget = updateRequest.Budget
 	group.BudgetCurrency = updateRequest.BudgetCurrency
-	group.Version += 1
 
 	updatedGroup, err := h.service.Update(context.Background(), groupId, *group)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Error when updating group", "error", err.Error())
+		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"message": "Failed to update group", "data": envelope{"error": err.Error()}})
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, map[string]any{"data": updatedGroup})
+	response := h.formatGroupResponse(updatedGroup)
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": response})
+}
+
+func (h *GroupHandler) formatGroupResponse(group *domain.Group) dto.GroupResponse {
+	return dto.GroupResponse{
+		UUID:           group.UUID,
+		Name:           group.Name,
+		Budget:         group.Budget,
+		BudgetCurrency: group.BudgetCurrency,
+		CreatedAt:      helper.DateTime(group.CreatedAt),
+		UpdatedAt:      helper.DateTime(group.UpdatedAt),
+	}
 }
