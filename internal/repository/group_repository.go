@@ -12,7 +12,6 @@ import (
 
 type GroupRepositoryInterface interface {
 	CrudRepository[domain.Group]
-	GetByUUID(ctx context.Context, uuid string) (*domain.Group, error)
 }
 
 type mongoGroupRepo struct {
@@ -43,7 +42,7 @@ func (g *mongoGroupRepo) Get(ctx context.Context, id string) (*domain.Group, err
 
 	var group *domain.Group
 
-	err := g.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&group)
+	err := g.collection.FindOne(ctx, bson.M{"uuid": id}).Decode(&group)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +97,7 @@ func (g *mongoGroupRepo) Update(ctx context.Context, item domain.Group) (*domain
 		return nil, err
 	}
 
-	return g.Get(ctx, item.ID.Hex())
+	return g.Get(ctx, item.UUID)
 }
 
 func (g *mongoGroupRepo) Delete(ctx context.Context, id string) error {
@@ -107,15 +106,4 @@ func (g *mongoGroupRepo) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-}
-
-func (g *mongoGroupRepo) GetByUUID(ctx context.Context, uuid string) (*domain.Group, error) {
-	var group *domain.Group
-
-	err := g.collection.FindOne(ctx, bson.M{"uuid": uuid}).Decode(&group)
-	if err != nil {
-		return nil, err
-	}
-
-	return group, nil
 }
