@@ -11,7 +11,6 @@ import (
 type GroupServiceInterface interface {
 	CrudService[domain.Group]
 	CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error)
-	GetByUUID(ctx context.Context, uuid string) (*domain.Group, error)
 }
 
 type groupService struct {
@@ -72,8 +71,4 @@ func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User)
 	}
 
 	return s.repo.Create(ctx, defaultGroup)
-}
-
-func (s *groupService) GetByUUID(ctx context.Context, uuid string) (*domain.Group, error) {
-	return s.repo.GetByUUID(ctx, uuid)
 }
