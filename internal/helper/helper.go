@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -46,4 +47,14 @@ func ReadParam(r *http.Request, key string) string {
 	id := params.ByName("id")
 
 	return id
+}
+
+func DateTime(datetime time.Time) string {
+	loc, err := time.LoadLocation("America/Sao_Paulo")
+
+	if err != nil {
+		slog.Error("Unable to load timezone", "error", err.Error())
+		return ""
+	}
+	return datetime.In(loc).Format("2006-01-02T15:04:05")
 }
