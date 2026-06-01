@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -57,4 +58,14 @@ func DateTime(datetime time.Time) string {
 		return ""
 	}
 	return datetime.In(loc).Format("2006-01-02T15:04:05")
+}
+
+func GenerateUUIDV7() string {
+	value, err := uuid.NewV7()
+	if err != nil {
+		slog.Error("Unable to generate UUIDv7", "error", err.Error())
+		return ""
+	}
+
+	return value.String()
 }
