@@ -7,18 +7,19 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ItemServiceInterface interface {
 	CrudService[domain.Item]
-	GetAllByGroupID(ctx context.Context, groupID string) ([]domain.Item, error)
+	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
 }
 
 type itemService struct {
-	repo repository.CrudRepository[domain.Item]
+	repo repository.ItemRepositoryInterface
 }
 
-func NewItemService(repo repository.CrudRepository[domain.Item]) ItemServiceInterface {
+func NewItemService(repo repository.ItemRepositoryInterface) ItemServiceInterface {
 	return &itemService{
 		repo: repo,
 	}
@@ -55,6 +56,12 @@ func (s *itemService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *itemService) GetAllByGroupID(ctx context.Context, groupID string) ([]domain.Item, error) {
-	return []domain.Item{}, nil
+func (s *itemService) GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error) {
+
+	items, err := s.repo.GetAllByGroupID(ctx, groupID)
+	if err != nil {
+		return []domain.Item{}, err
+	}
+
+	return items, nil
 }

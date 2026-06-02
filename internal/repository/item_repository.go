@@ -7,12 +7,13 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ItemRepositoryInterface interface {
 	CrudRepository[domain.Item]
-	GetAllByGroupID(ctx context.Context, groupID string) ([]domain.Item, error)
+	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
 }
 
 type itemRepo struct {
@@ -64,10 +65,10 @@ func (r *itemRepo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *itemRepo) GetAllByGroupID(ctx context.Context, groupID string) ([]domain.Item, error) {
+func (r *itemRepo) GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error) {
 	var items []domain.Item
 
-	filterList := []string{groupID}
+	filterList := []primitive.ObjectID{groupID}
 
 	filter := bson.M{
 		"$in": filterList,
