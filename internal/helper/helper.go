@@ -53,6 +53,10 @@ func ReadParam(r *http.Request, key string) string {
 func DateTime(datetime time.Time) string {
 	loc, err := time.LoadLocation("America/Sao_Paulo")
 
+	if datetime.IsZero() {
+		return ""
+	}
+
 	if err != nil {
 		slog.Error("Unable to load timezone", "error", err.Error())
 		return ""
