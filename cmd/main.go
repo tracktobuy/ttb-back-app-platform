@@ -32,12 +32,18 @@ func main() {
 	groupRepository := repository.NewGroupRepo(db)
 	groupService := service.NewGroupServiceImplementation(groupRepository)
 
+	itemRepository := repository.NewItemRepository(db)
+	itemService := service.NewItemService(itemRepository)
+
 	// Handlers
 	userHandler := handler.NewUserHandler(userService)
 	userHandler.Routes(mux)
 
 	groupHandler := handler.NewGroupHandler(groupService)
 	groupHandler.Routes(mux)
+
+	itemHandler := handler.NewItemHandler(itemService, groupService)
+	itemHandler.Routes(mux)
 
 	accountHandler := handler.NewAccountHandler(ctx, userService, groupService)
 	accountHandler.RegisterRoutes(mux)
