@@ -9,11 +9,11 @@ import (
 
 type accountService struct {
 	userService  UserService
-	groupService GroupServiceInterface
+	groupService GroupService
 	ctx          context.Context
 }
 
-func NewAccountService(ctx context.Context, userService UserService, groupService GroupServiceInterface) *accountService {
+func NewAccountService(ctx context.Context, userService UserService, groupService GroupService) *accountService {
 	return &accountService{
 		userService:  userService,
 		groupService: groupService,

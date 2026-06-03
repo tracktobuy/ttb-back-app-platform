@@ -12,10 +12,10 @@ import (
 )
 
 type GroupHandler struct {
-	service service.GroupServiceInterface
+	service service.GroupService
 }
 
-func NewGroupHandler(groupService service.GroupServiceInterface) *GroupHandler {
+func NewGroupHandler(groupService service.GroupService) *GroupHandler {
 	return &GroupHandler{
 		service: groupService,
 	}

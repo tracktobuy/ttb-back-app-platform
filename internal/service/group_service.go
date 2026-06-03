@@ -8,7 +8,7 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 )
 
-type GroupServiceInterface interface {
+type GroupService interface {
 	CrudService[domain.Group]
 	CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error)
 }
@@ -17,13 +17,13 @@ type groupService struct {
 	repo repository.GroupRepositoryInterface
 }
 
-func NewGroupService(repo repository.GroupRepositoryInterface) GroupServiceInterface {
+func NewGroupService(repo repository.GroupRepositoryInterface) GroupService {
 	return &groupService{
 		repo: repo,
 	}
 }
 
-func NewGroupServiceImplementation(repo repository.GroupRepositoryInterface) GroupServiceInterface {
+func NewGroupServiceImplementation(repo repository.GroupRepositoryInterface) GroupService {
 	return &groupService{
 		repo: repo,
 	}
