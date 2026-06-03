@@ -7,18 +7,19 @@ import (
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
 
 type accountHandler struct {
 	ctx          context.Context
-	userService  service.CrudService[domain.User]
+	userService  service.UserService
 	groupService service.GroupServiceInterface
 }
 
 func NewAccountHandler(ctx context.Context,
-	userService service.CrudService[domain.User],
+	userService service.UserService,
 	groupService service.GroupServiceInterface) *accountHandler {
 
 	return &accountHandler{
@@ -34,7 +35,7 @@ func (h *accountHandler) RegisterRoutes(router *http.ServeMux) {
 
 func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
-	var userRequest dto.NewUserRequest
+	var userRequest request.Account
 	err := helper.ReadJSON(w, r, &userRequest)
 	if err != nil {
 		helper.WriteJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})

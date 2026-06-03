@@ -6,16 +6,16 @@ import (
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/dto"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
 
 type UserHandler struct {
-	service service.CrudService[domain.User]
+	service service.UserService
 }
 
-func NewUserHandler(service service.CrudService[domain.User]) *UserHandler {
+func NewUserHandler(service service.UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
@@ -26,7 +26,7 @@ func (h *UserHandler) Routes(mux *http.ServeMux) {
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received request: %s %s", r.Method, r.URL.Path)
 
-	var userRequest dto.NewUserRequest
+	var userRequest request.Account
 	err := helper.ReadJSON(w, r, &userRequest)
 
 	if err != nil {
