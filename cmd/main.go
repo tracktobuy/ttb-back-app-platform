@@ -35,6 +35,9 @@ func main() {
 	itemRepository := repository.NewItemRepository(db)
 	itemService := service.NewItemService(itemRepository)
 
+	storeRepository := repository.NewStoreRepository(db)
+	storeService := service.NewStoreService(storeRepository)
+
 	// Handlers
 	userHandler := handler.NewUserHandler(userService)
 	userHandler.Routes(mux)
@@ -42,7 +45,7 @@ func main() {
 	groupHandler := handler.NewGroupHandler(groupService)
 	groupHandler.Routes(mux)
 
-	itemHandler := handler.NewItemHandler(itemService, groupService)
+	itemHandler := handler.NewItemHandler(itemService, groupService, storeService)
 	itemHandler.Routes(mux)
 
 	accountHandler := handler.NewAccountHandler(ctx, userService, groupService)

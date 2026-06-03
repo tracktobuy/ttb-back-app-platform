@@ -16,14 +16,17 @@ import (
 type ItemHandler struct {
 	itemService  service.ItemServiceInterface
 	groupService service.CrudService[domain.Group]
+	storeService service.CrudService[domain.Store]
 }
 
 func NewItemHandler(itemService service.ItemServiceInterface,
-	groupService service.CrudService[domain.Group]) *ItemHandler {
+	groupService service.CrudService[domain.Group],
+	storeService service.CrudService[domain.Store]) *ItemHandler {
 
 	return &ItemHandler{
 		itemService:  itemService,
 		groupService: groupService,
+		storeService: storeService,
 	}
 }
 
@@ -48,10 +51,26 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	store := domain.Store{
+		UUID:       helper.GenerateUUIDV7(),
+		Price:      request.Price,
+		Currency:   request.Currency,
+		Domain:     request.Domain,
+		Name:       request.Store,
+		BestOption: false,
+	}
+
+	newStore, err := h.storeService.Create(context.Background(), store)
+	if err != nil {
+		helper.InternalServerError(w, err)
+		return
+	}
+
 	item := domain.Item{
 		Title:  request.Title,
 		Images: []string{request.Image},
 		Groups: []primitive.ObjectID{group.ID},
+		Stores: []primitive.ObjectID{newStore.ID},
 	}
 
 	newItem, err := h.itemService.Create(context.Background(), item)
@@ -63,6 +82,7 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	response := h.formatItemResponse(newItem)
 	response.Groups = []string{group.UUID}
+	response.Stores = []string{newStore.UUID}
 
 	helper.WriteJSON(w, http.StatusCreated, response)
 
