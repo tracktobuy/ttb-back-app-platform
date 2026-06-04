@@ -21,10 +21,6 @@ func NewAccountHandler(services internal.Service) *AccountHandler {
 	}
 }
 
-func (h *AccountHandler) RegisterRoutes(router *http.ServeMux) {
-	router.HandleFunc("POST /accounts", h.CreateAccount)
-}
-
 func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	var accountRequest request.Account

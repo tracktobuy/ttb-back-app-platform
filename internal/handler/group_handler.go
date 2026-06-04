@@ -20,11 +20,6 @@ func NewGroupHandler(service internal.Service) *GroupHandler {
 	}
 }
 
-func (h *GroupHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("PUT /groups/{groupId}", h.Update)
-	mux.HandleFunc("GET /groups/{groupId}", h.Get)
-}
-
 func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("groupId")

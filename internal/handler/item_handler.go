@@ -23,12 +23,6 @@ func NewItemHandler(services internal.Service) *ItemHandler {
 	}
 }
 
-func (h *ItemHandler) Routes(mux *http.ServeMux) {
-
-	mux.HandleFunc("POST /items", h.Create)
-	mux.HandleFunc("GET /items", h.GetAll)
-}
-
 func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var request request.ItemRequest

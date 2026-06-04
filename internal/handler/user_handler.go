@@ -18,10 +18,6 @@ func NewUserHandler(service internal.Service) *UserHandler {
 	return &UserHandler{service: service}
 }
 
-func (h *UserHandler) Routes(mux *http.ServeMux) {
-	mux.HandleFunc("POST /users", h.Create)
-}
-
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var userRequest request.Account
 	err := helper.ReadJSON(w, r, &userRequest)
