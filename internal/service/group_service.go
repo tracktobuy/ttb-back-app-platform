@@ -54,7 +54,16 @@ func (s *groupService) Get(ctx context.Context, id string) (*response.Group, err
 
 func (s *groupService) Update(ctx context.Context, id string, reqGroup request.Group) (*response.Group, error) {
 
-	group, err := s.repo.Update(ctx, domain.Group{})
+	grp, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	grp.Name = reqGroup.Name
+	grp.Budget = reqGroup.Budget
+	grp.BudgetCurrency = reqGroup.BudgetCurrency
+
+	group, err := s.repo.Update(ctx, grp)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +78,7 @@ func (s *groupService) Delete(ctx context.Context, id string) error {
 func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User) (*response.Group, error) {
 
 	defaultGroup := domain.Group{
-		Name:           "Wishlist",
+		Name:           user.Name + "'s Wishlist",
 		Budget:         0.0,
 		BudgetCurrency: "BRL",
 		CreatedBy:      user.ID,

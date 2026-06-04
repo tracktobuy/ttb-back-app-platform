@@ -16,7 +16,7 @@ const GROUPS_COLLECTION_NAME = "groups"
 type GroupRepository interface {
 	Create(ctx context.Context, item domain.Group) (*domain.Group, error)
 	Get(ctx context.Context, id string) (*domain.Group, error)
-	Update(ctx context.Context, item domain.Group) (*domain.Group, error)
+	Update(ctx context.Context, item *domain.Group) (*domain.Group, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -57,7 +57,7 @@ func (g *mongoGroupRepo) Get(ctx context.Context, id string) (*domain.Group, err
 	return group, nil
 }
 
-func (g *mongoGroupRepo) Update(ctx context.Context, item domain.Group) (*domain.Group, error) {
+func (g *mongoGroupRepo) Update(ctx context.Context, item *domain.Group) (*domain.Group, error) {
 
 	version := item.Version
 
