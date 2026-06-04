@@ -28,9 +28,8 @@ func main() {
 	db := client.Database(cfg.MongoDB)
 
 	userRepo := repository.NewUserRepo(db)
-	userService := service.NewUserService(userRepo)
-
 	groupRepo := repository.NewGroupRepo(db)
+
 	groupService := service.NewGroupService(groupRepo)
 
 	itemRepository := repository.NewItemRepository(db)
@@ -43,10 +42,10 @@ func main() {
 	services := internal.NewService(userRepo, groupRepo)
 
 	// Handlers
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(services)
 	userHandler.Routes(mux)
 
-	groupHandler := handler.NewGroupHandler(groupService)
+	groupHandler := handler.NewGroupHandler(services)
 	groupHandler.Routes(mux)
 
 	itemHandler := handler.NewItemHandler(itemService, groupService, storeService)

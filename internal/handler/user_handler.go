@@ -4,17 +4,17 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
 
 type UserHandler struct {
-	service service.UserService
+	service internal.Service
 }
 
-func NewUserHandler(service service.UserService) *UserHandler {
+func NewUserHandler(service internal.Service) *UserHandler {
 	return &UserHandler{service: service}
 }
 
@@ -38,12 +38,12 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Version:  1,
 	}
 
-	user, err := h.service.Create(context.Background(), item)
+	user, err := h.service.UserService.Create(context.Background(), item)
 
 	if err != nil {
 		helper.InternalServerError(w, err)
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusCreated, map[string]any{"data": user})
+	helper.WriteJSON(w, http.StatusCreated, envelope{"data": user})
 }

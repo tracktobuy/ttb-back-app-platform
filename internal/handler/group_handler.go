@@ -5,18 +5,18 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
 
 type GroupHandler struct {
-	service service.GroupService
+	service internal.Service
 }
 
-func NewGroupHandler(groupService service.GroupService) *GroupHandler {
+func NewGroupHandler(service internal.Service) *GroupHandler {
 	return &GroupHandler{
-		service: groupService,
+		service: service,
 	}
 }
 
@@ -29,7 +29,7 @@ func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("groupId")
 
-	group, err := h.service.Get(context.Background(), groupId)
+	group, err := h.service.GroupService.Get(context.Background(), groupId)
 
 	if err != nil {
 		helper.WriteJSON(w, http.StatusNotFound, envelope{"message": "Group not found", "data": nil})
@@ -42,7 +42,7 @@ func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("groupId")
-	group, err := h.service.Get(context.Background(), groupId)
+	group, err := h.service.GroupService.Get(context.Background(), groupId)
 	if err != nil {
 		helper.WriteJSON(w, http.StatusNotFound, envelope{"message": "Group not found", "data": nil})
 		return
@@ -61,7 +61,7 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 	group.Budget = reqGroup.Budget
 	group.BudgetCurrency = reqGroup.BudgetCurrency
 
-	updatedGroup, err := h.service.Update(context.Background(), groupId, reqGroup)
+	updatedGroup, err := h.service.GroupService.Update(context.Background(), groupId, reqGroup)
 	if err != nil {
 		slog.Error("Error when updating group", "error", err.Error())
 		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"message": "Failed to update group", "data": envelope{"error": err.Error()}})
