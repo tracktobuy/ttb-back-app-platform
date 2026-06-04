@@ -4,28 +4,22 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ItemHandler struct {
-	itemService  service.ItemService
-	groupService service.GroupService
-	storeService service.CrudService[domain.Store]
+	services internal.Service
 }
 
-func NewItemHandler(itemService service.ItemService,
-	groupService service.GroupService,
-	storeService service.CrudService[domain.Store]) *ItemHandler {
+func NewItemHandler(services internal.Service) *ItemHandler {
 
 	return &ItemHandler{
-		itemService:  itemService,
-		groupService: groupService,
-		storeService: storeService,
+		services: services,
 	}
 }
 
@@ -44,7 +38,7 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := h.groupService.Get(context.Background(), request.GroupId)
+	group, err := h.services.GroupService.Get(context.Background(), request.GroupId)
 	if err != nil {
 		helper.WriteJSON(w, http.StatusNotFound, envelope{"data": nil, "message": "Group not found", "error": err.Error()})
 		return
@@ -59,7 +53,7 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		BestOption: false,
 	}
 
-	newStore, err := h.storeService.Create(context.Background(), store)
+	newStore, err := h.services.StoreService.Create(context.Background(), store)
 	if err != nil {
 		helper.InternalServerError(w, err)
 		return
@@ -72,7 +66,7 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Stores: []primitive.ObjectID{newStore.ID},
 	}
 
-	newItem, err := h.itemService.Create(context.Background(), item)
+	newItem, err := h.services.ItemService.Create(context.Background(), item)
 
 	if err != nil {
 		helper.InternalServerError(w, err)
@@ -91,13 +85,13 @@ func (h *ItemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	groupID := r.URL.Query().Get("groupId")
 
-	group, err := h.groupService.Get(context.Background(), groupID)
+	group, err := h.services.GroupService.Get(context.Background(), groupID)
 	if err != nil {
 		helper.WriteJSON(w, http.StatusNotFound, envelope{"data": nil, "message": "Group not found", "error": err.Error()})
 		return
 	}
 
-	items, err := h.itemService.GetAllByGroupID(context.Background(), group.ID)
+	items, err := h.services.ItemService.GetAllByGroupID(context.Background(), group.ID)
 
 	if err != nil {
 		helper.InternalServerError(w, err)

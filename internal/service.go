@@ -11,20 +11,24 @@ type Service struct {
 	GroupService   service.GroupService
 	AccountService service.AccountService
 	ItemService    service.ItemService
+	StoreService   service.StoreService
 }
 
 func CreateServices(userRepo repository.CrudRepository[domain.User],
 	groupRepo repository.GroupRepository,
-	itemRepo repository.ItemRepository) Service {
+	itemRepo repository.ItemRepository,
+	storeRepo repository.StoreRepository) Service {
 
 	userService := service.NewUserService(userRepo)
 	groupService := service.NewGroupService(groupRepo)
 	itemService := service.NewItemService(itemRepo)
+	storeService := service.NewStoreService(storeRepo)
 
 	return Service{
 		UserService:    userService,
 		GroupService:   groupService,
 		AccountService: service.NewAccountService(userService, groupService),
 		ItemService:    itemService,
+		StoreService:   storeService,
 	}
 }

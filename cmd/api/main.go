@@ -10,7 +10,6 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/handler"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
 
 func main() {
@@ -29,17 +28,11 @@ func main() {
 
 	userRepo := repository.NewUserRepo(db)
 	groupRepo := repository.NewGroupRepo(db)
-
-	groupService := service.NewGroupService(groupRepo)
-
 	itemRepo := repository.NewItemRepository(db)
-	itemService := service.NewItemService(itemRepo)
-
-	storeRepository := repository.NewStoreRepository(db)
-	storeService := service.NewStoreService(storeRepository)
+	storeRepo := repository.NewStoreRepository(db)
 
 	// Services
-	services := internal.CreateServices(userRepo, groupRepo, itemRepo)
+	services := internal.CreateServices(userRepo, groupRepo, itemRepo, storeRepo)
 
 	// Handlers
 	userHandler := handler.NewUserHandler(services)
@@ -48,7 +41,7 @@ func main() {
 	groupHandler := handler.NewGroupHandler(services)
 	groupHandler.Routes(mux)
 
-	itemHandler := handler.NewItemHandler(itemService, groupService, storeService)
+	itemHandler := handler.NewItemHandler(services)
 	itemHandler.Routes(mux)
 
 	accountHandler := handler.NewAccountHandler(services)
