@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
@@ -14,12 +13,12 @@ import (
 )
 
 type ItemHandler struct {
-	itemService  service.ItemServiceInterface
+	itemService  service.ItemService
 	groupService service.GroupService
 	storeService service.CrudService[domain.Store]
 }
 
-func NewItemHandler(itemService service.ItemServiceInterface,
+func NewItemHandler(itemService service.ItemService,
 	groupService service.GroupService,
 	storeService service.CrudService[domain.Store]) *ItemHandler {
 
@@ -91,7 +90,6 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ItemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	groupID := r.URL.Query().Get("groupId")
-	slog.Info("GetAll", "info", groupID)
 
 	group, err := h.groupService.Get(context.Background(), groupID)
 	if err != nil {
@@ -100,8 +98,6 @@ func (h *ItemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	items, err := h.itemService.GetAllByGroupID(context.Background(), group.ID)
-
-	slog.Info("Length", "info", len(items))
 
 	if err != nil {
 		helper.InternalServerError(w, err)
