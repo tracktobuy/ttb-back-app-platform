@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 )
 
 type accountService struct {
@@ -21,7 +22,7 @@ func NewAccountService(ctx context.Context, userService UserService, groupServic
 	}
 }
 
-func (s *accountService) CreateAccount(user domain.User) (*domain.User, *domain.Group, error) {
+func (s *accountService) CreateAccount(user domain.User) (*domain.User, *response.Group, error) {
 
 	newUser, err := s.userService.Create(s.ctx, user)
 	if err != nil {
