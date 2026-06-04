@@ -3,72 +3,94 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 )
 
 type GroupService interface {
-	CrudService[domain.Group]
-	CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error)
+	Create(ctx context.Context, item request.Group, user domain.User) (*response.Group, error)
+	Get(ctx context.Context, id string) (*response.Group, error)
+	Update(ctx context.Context, id string, item request.Group) (*response.Group, error)
+	CreateDefaultGroup(ctx context.Context, user domain.User) (*response.Group, error)
 }
 
 type groupService struct {
-	repo repository.GroupRepositoryInterface
+	repo repository.GroupRepository
 }
 
-func NewGroupService(repo repository.GroupRepositoryInterface) GroupService {
+func NewGroupService(repo repository.GroupRepository) GroupService {
 	return &groupService{
 		repo: repo,
 	}
 }
 
-func NewGroupServiceImplementation(repo repository.GroupRepositoryInterface) GroupService {
-	return &groupService{
-		repo: repo,
+func (s *groupService) Create(ctx context.Context, reqGroup request.Group, user domain.User) (*response.Group, error) {
+
+	item := domain.Group{
+		Name:           reqGroup.Name,
+		Budget:         reqGroup.Budget,
+		BudgetCurrency: reqGroup.BudgetCurrency,
+		CreatedBy:      user.ID,
 	}
-}
 
-func (s *groupService) Create(ctx context.Context, item domain.Group) (*domain.Group, error) {
-	return s.repo.Create(ctx, item)
-}
-
-func (s *groupService) Get(ctx context.Context, id string) (*domain.Group, error) {
-	return s.repo.Get(ctx, id)
-}
-
-func (s *groupService) GetAll(ctx context.Context) ([]domain.Group, error) {
-	return s.repo.GetAll(ctx)
-}
-
-func (s *groupService) Update(ctx context.Context, id string, item domain.Group) (*domain.Group, error) {
-
-	group, err := s.repo.Update(ctx, item)
+	newGroup, err := s.repo.Create(ctx, item)
 	if err != nil {
 		return nil, err
 	}
 
-	return group, err
+	return s.formatGroupResponse(newGroup), nil
+}
+
+func (s *groupService) Get(ctx context.Context, id string) (*response.Group, error) {
+	group, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.formatGroupResponse(group), nil
+}
+
+func (s *groupService) Update(ctx context.Context, id string, reqGroup request.Group) (*response.Group, error) {
+
+	group, err := s.repo.Update(ctx, domain.Group{})
+	if err != nil {
+		return nil, err
+	}
+
+	return s.formatGroupResponse(group), err
 }
 
 func (s *groupService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User) (*domain.Group, error) {
-
-	value, err := uuid.NewV7()
-	if err != nil {
-		return nil, err
-	}
+func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User) (*response.Group, error) {
 
 	defaultGroup := domain.Group{
-		UUID:           value.String(),
 		Name:           "Wishlist",
 		Budget:         0.0,
 		BudgetCurrency: "BRL",
 		CreatedBy:      user.ID,
 	}
 
-	return s.repo.Create(ctx, defaultGroup)
+	newGroup, err := s.repo.Create(ctx, defaultGroup)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.formatGroupResponse(newGroup), nil
+}
+
+func (s *groupService) formatGroupResponse(group *domain.Group) *response.Group {
+	return &response.Group{
+		ID:             group.ID,
+		UUID:           group.UUID,
+		Name:           group.Name,
+		Budget:         group.Budget,
+		BudgetCurrency: group.BudgetCurrency,
+		CreatedAt:      helper.DateTime(group.CreatedAt),
+		UpdatedAt:      helper.DateTime(group.UpdatedAt),
+	}
 }

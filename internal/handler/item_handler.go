@@ -15,12 +15,12 @@ import (
 
 type ItemHandler struct {
 	itemService  service.ItemServiceInterface
-	groupService service.CrudService[domain.Group]
+	groupService service.GroupService
 	storeService service.CrudService[domain.Store]
 }
 
 func NewItemHandler(itemService service.ItemServiceInterface,
-	groupService service.CrudService[domain.Group],
+	groupService service.GroupService,
 	storeService service.CrudService[domain.Store]) *ItemHandler {
 
 	return &ItemHandler{

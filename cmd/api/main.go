@@ -30,7 +30,7 @@ func main() {
 	userService := service.NewUserService(userRepository)
 
 	groupRepository := repository.NewGroupRepo(db)
-	groupService := service.NewGroupServiceImplementation(groupRepository)
+	groupService := service.NewGroupService(groupRepository)
 
 	itemRepository := repository.NewItemRepository(db)
 	itemService := service.NewItemService(itemRepository)

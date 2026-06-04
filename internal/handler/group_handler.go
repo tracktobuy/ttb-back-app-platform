@@ -5,8 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/dto"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
@@ -37,8 +36,7 @@ func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupResponse := h.formatGroupResponse(group)
-	helper.WriteJSON(w, http.StatusOK, envelope{"data": groupResponse})
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": group})
 }
 
 func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -50,37 +48,25 @@ func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updateRequest dto.UpdateGroupRequest
+	var reqGroup request.Group
 
-	err = helper.ReadJSON(w, r, &updateRequest)
+	err = helper.ReadJSON(w, r, &reqGroup)
 	if err != nil {
 		helper.WriteJSON(w, http.StatusBadRequest, envelope{"message": "Invalid request body", "data": nil})
 		return
 	}
 
 	group.UUID = groupId
-	group.Name = updateRequest.Name
-	group.Budget = updateRequest.Budget
-	group.BudgetCurrency = updateRequest.BudgetCurrency
+	group.Name = reqGroup.Name
+	group.Budget = reqGroup.Budget
+	group.BudgetCurrency = reqGroup.BudgetCurrency
 
-	updatedGroup, err := h.service.Update(context.Background(), groupId, *group)
+	updatedGroup, err := h.service.Update(context.Background(), groupId, reqGroup)
 	if err != nil {
 		slog.Error("Error when updating group", "error", err.Error())
 		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"message": "Failed to update group", "data": envelope{"error": err.Error()}})
 		return
 	}
 
-	response := h.formatGroupResponse(updatedGroup)
-	helper.WriteJSON(w, http.StatusOK, envelope{"data": response})
-}
-
-func (h *GroupHandler) formatGroupResponse(group *domain.Group) dto.GroupResponse {
-	return dto.GroupResponse{
-		UUID:           group.UUID,
-		Name:           group.Name,
-		Budget:         group.Budget,
-		BudgetCurrency: group.BudgetCurrency,
-		CreatedAt:      helper.DateTime(group.CreatedAt),
-		UpdatedAt:      helper.DateTime(group.UpdatedAt),
-	}
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": updatedGroup})
 }

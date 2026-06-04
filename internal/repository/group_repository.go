@@ -5,20 +5,24 @@ import (
 	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type GroupRepositoryInterface interface {
-	CrudRepository[domain.Group]
+type GroupRepository interface {
+	Create(ctx context.Context, item domain.Group) (*domain.Group, error)
+	Get(ctx context.Context, id string) (*domain.Group, error)
+	Update(ctx context.Context, item domain.Group) (*domain.Group, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type mongoGroupRepo struct {
 	collection *mongo.Collection
 }
 
-func NewGroupRepo(db *mongo.Database) GroupRepositoryInterface {
+func NewGroupRepo(db *mongo.Database) GroupRepository {
 	return &mongoGroupRepo{
 		collection: db.Collection("groups"),
 	}
@@ -27,6 +31,7 @@ func NewGroupRepo(db *mongo.Database) GroupRepositoryInterface {
 func (g *mongoGroupRepo) Create(ctx context.Context, item domain.Group) (*domain.Group, error) {
 
 	item.ID = primitive.NewObjectID()
+	item.UUID = helper.GenerateUUIDV7()
 	item.Version = 1
 	item.CreatedAt = time.Now().UTC()
 
@@ -48,29 +53,6 @@ func (g *mongoGroupRepo) Get(ctx context.Context, id string) (*domain.Group, err
 	}
 
 	return group, nil
-}
-
-func (g *mongoGroupRepo) GetAll(ctx context.Context) ([]domain.Group, error) {
-
-	cursor, err := g.collection.Find(ctx, bson.M{})
-
-	if err != nil {
-		return []domain.Group{}, err
-	}
-
-	var groups []domain.Group
-
-	defer cursor.Close(ctx)
-
-	if err := cursor.All(ctx, &groups); err != nil {
-		return []domain.Group{}, err
-	}
-
-	if len(groups) == 0 {
-		return []domain.Group{}, nil
-	}
-
-	return groups, nil
 }
 
 func (g *mongoGroupRepo) Update(ctx context.Context, item domain.Group) (*domain.Group, error) {

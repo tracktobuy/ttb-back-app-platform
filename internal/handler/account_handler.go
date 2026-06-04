@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/dto"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
@@ -57,8 +57,38 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := dto.NewAccountResponse(*user, *group)
+	response := NewAccountResponse(*user, group)
 
 	helper.WriteJSON(w, http.StatusCreated, map[string]any{"data": response})
 
+}
+
+type userResponse struct {
+	UUID     string `json:"uuid"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
+}
+
+type groupResponse struct {
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
+}
+
+type newAccountResponse struct {
+	User  userResponse  `json:"user"`
+	Group groupResponse `json:"group"`
+}
+
+func NewAccountResponse(user domain.User, group *response.Group) newAccountResponse {
+	return newAccountResponse{
+		User: userResponse{
+			UUID:     user.UUID,
+			Username: user.Username,
+			Name:     user.Name,
+		},
+		Group: groupResponse{
+			UUID: group.UUID,
+			Name: group.Name,
+		},
+	}
 }
