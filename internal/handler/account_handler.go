@@ -64,10 +64,10 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 type userResponse struct {
-	UUID     string         `json:"uuid"`
-	Username string         `json:"username"`
-	Name     string         `json:"name"`
-	Group    response.Group `json:"group"`
+	UUID     string           `json:"uuid"`
+	Username string           `json:"username"`
+	Name     string           `json:"name"`
+	Groups   []response.Group `json:"groups"`
 }
 
 type newAccountResponse struct {
@@ -75,12 +75,18 @@ type newAccountResponse struct {
 }
 
 func NewAccountResponse(user domain.User, group *response.Group) newAccountResponse {
+
+	groups := make([]response.Group, 0)
+	if group != nil {
+		groups = append(groups, *group)
+	}
+
 	return newAccountResponse{
 		User: userResponse{
 			UUID:     user.UUID,
 			Username: user.Username,
 			Name:     user.Name,
-			Group:    *group,
+			Groups:   groups,
 		},
 	}
 }
