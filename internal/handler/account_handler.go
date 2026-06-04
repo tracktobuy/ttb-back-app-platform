@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
@@ -13,7 +13,6 @@ import (
 )
 
 type accountHandler struct {
-	ctx          context.Context
 	userService  service.UserService
 	groupService service.GroupService
 }
@@ -23,7 +22,6 @@ func NewAccountHandler(ctx context.Context,
 	groupService service.GroupService) *accountHandler {
 
 	return &accountHandler{
-		ctx:          ctx,
 		userService:  userService,
 		groupService: groupService,
 	}
@@ -49,8 +47,10 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		Version:  1,
 	}
 
-	slog.Info("Requesting user creation")
-	user, group, err := service.NewAccountService(h.ctx, h.userService, h.groupService).CreateAccount(newUser)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, group, err := service.NewAccountService(ctx, h.userService, h.groupService).CreateAccount(newUser)
 
 	if err != nil {
 		helper.WriteJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
