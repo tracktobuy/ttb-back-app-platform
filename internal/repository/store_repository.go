@@ -9,11 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type StoreRepository interface {
+	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
+}
+
 type storeRepo struct {
 	collection *mongo.Collection
 }
 
-func NewStoreRepository(db *mongo.Database) CrudRepository[domain.Store] {
+func NewStoreRepository(db *mongo.Database) StoreRepository {
 	return &storeRepo{collection: db.Collection("stores")}
 }
 
@@ -29,20 +33,4 @@ func (r *storeRepo) Create(ctx context.Context, item domain.Store) (*domain.Stor
 	}
 
 	return &item, nil
-}
-
-func (r *storeRepo) Get(ctx context.Context, id string) (*domain.Store, error) {
-	return nil, nil
-}
-
-func (r *storeRepo) GetAll(ctx context.Context) ([]domain.Store, error) {
-	return nil, nil
-}
-
-func (r *storeRepo) Update(ctx context.Context, item domain.Store) (*domain.Store, error) {
-	return nil, nil
-}
-
-func (r *storeRepo) Delete(ctx context.Context, id string) error {
-	return nil
 }
