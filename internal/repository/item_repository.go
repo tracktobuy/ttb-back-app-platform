@@ -11,8 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type ItemRepositoryInterface interface {
-	CrudRepository[domain.Item]
+type ItemRepository interface {
+	Create(ctx context.Context, item domain.Item) (*domain.Item, error)
+	Get(ctx context.Context, id string) (*domain.Item, error)
+	Delete(ctx context.Context, id string) error
 	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
 }
 
@@ -20,7 +22,7 @@ type itemRepo struct {
 	collection *mongo.Collection
 }
 
-func NewItemRepository(db *mongo.Database) ItemRepositoryInterface {
+func NewItemRepository(db *mongo.Database) ItemRepository {
 	return &itemRepo{collection: db.Collection("items")}
 }
 
@@ -44,15 +46,6 @@ func (r *itemRepo) Get(ctx context.Context, id string) (*domain.Item, error) {
 		return nil, err
 	}
 	return &item, nil
-}
-
-func (r *itemRepo) GetAll(ctx context.Context) ([]domain.Item, error) {
-
-	return nil, nil
-}
-
-func (r *itemRepo) Update(ctx context.Context, item domain.Item) (*domain.Item, error) {
-	return nil, nil
 }
 
 func (r *itemRepo) Delete(ctx context.Context, id string) error {
