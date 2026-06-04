@@ -16,10 +16,10 @@ type ItemService interface {
 }
 
 type itemService struct {
-	repo repository.ItemRepositoryInterface
+	repo repository.ItemRepository
 }
 
-func NewItemService(repo repository.ItemRepositoryInterface) ItemService {
+func NewItemService(repo repository.ItemRepository) ItemService {
 	return &itemService{
 		repo: repo,
 	}

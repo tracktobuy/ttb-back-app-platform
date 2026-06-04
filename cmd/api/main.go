@@ -32,14 +32,14 @@ func main() {
 
 	groupService := service.NewGroupService(groupRepo)
 
-	itemRepository := repository.NewItemRepository(db)
-	itemService := service.NewItemService(itemRepository)
+	itemRepo := repository.NewItemRepository(db)
+	itemService := service.NewItemService(itemRepo)
 
 	storeRepository := repository.NewStoreRepository(db)
 	storeService := service.NewStoreService(storeRepository)
 
 	// Services
-	services := internal.NewService(userRepo, groupRepo)
+	services := internal.CreateServices(userRepo, groupRepo, itemRepo)
 
 	// Handlers
 	userHandler := handler.NewUserHandler(services)
