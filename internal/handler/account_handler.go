@@ -10,22 +10,22 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 )
 
-type accountHandler struct {
+type AccountHandler struct {
 	services internal.Service
 }
 
-func NewAccountHandler(services internal.Service) *accountHandler {
+func NewAccountHandler(services internal.Service) *AccountHandler {
 
-	return &accountHandler{
+	return &AccountHandler{
 		services: services,
 	}
 }
 
-func (h *accountHandler) RegisterRoutes(router *http.ServeMux) {
+func (h *AccountHandler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("POST /accounts", h.CreateAccount)
 }
 
-func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
+func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	var accountRequest request.Account
 	err := helper.ReadJSON(w, r, &accountRequest)
@@ -47,7 +47,7 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *accountHandler) newAccountResponse(user domain.User, group *response.Group) response.NewAccountResponse {
+func (h *AccountHandler) newAccountResponse(user domain.User, group *response.Group) response.NewAccountResponse {
 
 	groups := make([]response.Group, 0)
 	if group != nil {
