@@ -71,7 +71,7 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	response.Groups = []string{group.UUID}
 	response.Stores = []string{newStore.UUID}
 
-	helper.WriteJSON(w, http.StatusCreated, response)
+	helper.WriteJSON(w, http.StatusCreated, envelope{"data": response})
 
 }
 
@@ -99,7 +99,12 @@ func (h *ItemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		responseItems = append(responseItems, *responseItem)
 	}
 
-	helper.WriteJSON(w, http.StatusOK, responseItems)
+	if len(responseItems) == 0 {
+		helper.WriteJSON(w, http.StatusOK, envelope{"data": []response.Item{}})
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": responseItems})
 }
 
 func (h *ItemHandler) formatItemResponse(item *domain.Item) *response.Item {
