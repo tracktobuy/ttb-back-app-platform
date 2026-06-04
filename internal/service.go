@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
 )
 
@@ -14,15 +12,12 @@ type Service struct {
 	StoreService   service.StoreService
 }
 
-func CreateServices(userRepo repository.CrudRepository[domain.User],
-	groupRepo repository.GroupRepository,
-	itemRepo repository.ItemRepository,
-	storeRepo repository.StoreRepository) Service {
+func CreateServices(repo Repository) Service {
 
-	userService := service.NewUserService(userRepo)
-	groupService := service.NewGroupService(groupRepo)
-	itemService := service.NewItemService(itemRepo)
-	storeService := service.NewStoreService(storeRepo)
+	userService := service.NewUserService(repo.UserRepo)
+	groupService := service.NewGroupService(repo.GroupRepo)
+	itemService := service.NewItemService(repo.ItemRepo)
+	storeService := service.NewStoreService(repo.StoreRepo)
 
 	return Service{
 		UserService:    userService,

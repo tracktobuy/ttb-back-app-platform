@@ -9,7 +9,6 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/config"
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/handler"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 )
 
 func main() {
@@ -22,18 +21,12 @@ func main() {
 	client := config.MongoConnect(ctx, cfg)
 	defer client.Disconnect(context.Background())
 
-	mux := http.NewServeMux()
-
 	db := client.Database(cfg.MongoDB)
 
-	userRepo := repository.NewUserRepo(db)
-	groupRepo := repository.NewGroupRepo(db)
-	itemRepo := repository.NewItemRepository(db)
-	storeRepo := repository.NewStoreRepository(db)
+	repositories := internal.CreateRepositories(db)
+	services := internal.CreateServices(repositories)
 
-	// Services
-	services := internal.CreateServices(userRepo, groupRepo, itemRepo, storeRepo)
-
+	mux := http.NewServeMux()
 	// Handlers
 	userHandler := handler.NewUserHandler(services)
 	userHandler.Routes(mux)

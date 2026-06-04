@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const ITEMS_COLLECTION_NAME = "items"
+
 type ItemRepository interface {
 	Create(ctx context.Context, item domain.Item) (*domain.Item, error)
 	Get(ctx context.Context, id string) (*domain.Item, error)
@@ -22,8 +24,8 @@ type itemRepo struct {
 	collection *mongo.Collection
 }
 
-func NewItemRepository(db *mongo.Database) ItemRepository {
-	return &itemRepo{collection: db.Collection("items")}
+func NewItemRepo(db *mongo.Database) ItemRepository {
+	return &itemRepo{collection: db.Collection(ITEMS_COLLECTION_NAME)}
 }
 
 func (r *itemRepo) Create(ctx context.Context, item domain.Item) (*domain.Item, error) {

@@ -15,10 +15,10 @@ type UserService interface {
 }
 
 type userService struct {
-	repo repository.CrudRepository[domain.User]
+	repo repository.UserRepository
 }
 
-func NewUserService(repo repository.CrudRepository[domain.User]) UserService {
+func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{
 		repo: repo,
 	}

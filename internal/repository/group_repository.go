@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const GROUPS_COLLECTION_NAME = "groups"
+
 type GroupRepository interface {
 	Create(ctx context.Context, item domain.Group) (*domain.Group, error)
 	Get(ctx context.Context, id string) (*domain.Group, error)
@@ -24,7 +26,7 @@ type mongoGroupRepo struct {
 
 func NewGroupRepo(db *mongo.Database) GroupRepository {
 	return &mongoGroupRepo{
-		collection: db.Collection("groups"),
+		collection: db.Collection(GROUPS_COLLECTION_NAME),
 	}
 }
 

@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const STORES_COLLECTION_NAME = "stores"
+
 type StoreRepository interface {
 	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
 }
@@ -17,8 +19,8 @@ type storeRepo struct {
 	collection *mongo.Collection
 }
 
-func NewStoreRepository(db *mongo.Database) StoreRepository {
-	return &storeRepo{collection: db.Collection("stores")}
+func NewStoreRepo(db *mongo.Database) StoreRepository {
+	return &storeRepo{collection: db.Collection(STORES_COLLECTION_NAME)}
 }
 
 func (r *storeRepo) Create(ctx context.Context, item domain.Store) (*domain.Store, error) {

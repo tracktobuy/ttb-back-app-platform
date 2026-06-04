@@ -10,13 +10,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const USERS_COLLECTION_NAME = "users"
+
+type UserRepository interface {
+	Create(ctx context.Context, item domain.User) (*domain.User, error)
+	Get(ctx context.Context, id string) (*domain.User, error)
+	GetAll(ctx context.Context) ([]domain.User, error)
+	Update(ctx context.Context, item domain.User) (*domain.User, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type mongoUserRepo struct {
 	collection *mongo.Collection
 }
 
-func NewUserRepo(db *mongo.Database) CrudRepository[domain.User] {
+func NewUserRepo(db *mongo.Database) UserRepository {
 	return &mongoUserRepo{
-		collection: db.Collection("users"),
+		collection: db.Collection(USERS_COLLECTION_NAME),
 	}
 }
 
