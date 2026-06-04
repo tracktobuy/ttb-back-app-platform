@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/config"
+	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/handler"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/service"
@@ -26,17 +27,20 @@ func main() {
 
 	db := client.Database(cfg.MongoDB)
 
-	userRepository := repository.NewUserRepo(db)
-	userService := service.NewUserService(userRepository)
+	userRepo := repository.NewUserRepo(db)
+	userService := service.NewUserService(userRepo)
 
-	groupRepository := repository.NewGroupRepo(db)
-	groupService := service.NewGroupService(groupRepository)
+	groupRepo := repository.NewGroupRepo(db)
+	groupService := service.NewGroupService(groupRepo)
 
 	itemRepository := repository.NewItemRepository(db)
 	itemService := service.NewItemService(itemRepository)
 
 	storeRepository := repository.NewStoreRepository(db)
 	storeService := service.NewStoreService(storeRepository)
+
+	// Services
+	services := internal.NewService(userRepo, groupRepo)
 
 	// Handlers
 	userHandler := handler.NewUserHandler(userService)
@@ -48,7 +52,7 @@ func main() {
 	itemHandler := handler.NewItemHandler(itemService, groupService, storeService)
 	itemHandler.Routes(mux)
 
-	accountHandler := handler.NewAccountHandler(ctx, userService, groupService)
+	accountHandler := handler.NewAccountHandler(services)
 	accountHandler.RegisterRoutes(mux)
 
 	log.Printf("Server is running on port %s", ":8080")
