@@ -8,11 +8,19 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 )
 
+type StoreService interface {
+	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
+	Get(ctx context.Context, id string) (*domain.Store, error)
+	GetAll(ctx context.Context) ([]domain.Store, error)
+	Update(ctx context.Context, id string, item domain.Store) (*domain.Store, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type storeService struct {
 	repo repository.CrudRepository[domain.Store]
 }
 
-func NewStoreService(repo repository.CrudRepository[domain.Store]) CrudService[domain.Store] {
+func NewStoreService(repo repository.CrudRepository[domain.Store]) StoreService {
 	return &storeService{
 		repo: repo,
 	}
