@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
@@ -24,8 +23,6 @@ func (h *UserHandler) Routes(mux *http.ServeMux) {
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Received request: %s %s", r.Method, r.URL.Path)
-
 	var userRequest request.Account
 	err := helper.ReadJSON(w, r, &userRequest)
 
@@ -47,9 +44,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		helper.InternalServerError(w, err)
 		return
 	}
-
-	log.Printf("Parsed request body: %+v", userRequest)
-	log.Printf("Created user: %+v", user)
 
 	helper.WriteJSON(w, http.StatusCreated, map[string]any{"data": user})
 }
