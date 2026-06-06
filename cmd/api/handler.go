@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/handler"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Handler struct {
@@ -12,7 +13,10 @@ type Handler struct {
 	UserHandler    *handler.UserHandler
 }
 
-func CreateHandlers(services internal.Service) *Handler {
+func CreateHandlers(db *mongo.Database) *Handler {
+
+	services := internal.CreateServices(internal.CreateRepositories(db))
+
 	return &Handler{
 		AccountHandler: handler.NewAccountHandler(services),
 		GroupHandler:   handler.NewGroupHandler(services),
