@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
@@ -10,21 +11,33 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 )
 
-type AccountHandler struct {
+type AccountHandler interface {
+	BaseHandler
+	CreateAccount(w http.ResponseWriter, r *http.Request)
+}
+
+type accountHandler struct {
+	logger   *slog.Logger
 	services internal.Service
 }
 
-func NewAccountHandler(services internal.Service) *AccountHandler {
-
-	return &AccountHandler{
+func NewAccountHandler(services internal.Service) AccountHandler {
+	return &accountHandler{
 		services: services,
 	}
 }
 
-func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
+func (h *accountHandler) SetLogger(logger *slog.Logger) {
+	h.logger = logger
+}
+
+func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	var accountRequest request.Account
 	err := helper.ReadJSON(w, r, &accountRequest)
+
+	h.logger.Info("CreateAccount", "handler", "AccountHandler", "payload", accountRequest)
+
 	if err != nil {
 		helper.WriteJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
 		return
@@ -43,7 +56,7 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *AccountHandler) newAccountResponse(user domain.User, group *response.Group) response.NewAccountResponse {
+func (h *accountHandler) newAccountResponse(user domain.User, group *response.Group) response.NewAccountResponse {
 
 	groups := make([]response.Group, 0)
 	if group != nil {

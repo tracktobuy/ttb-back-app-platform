@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/config"
@@ -17,9 +19,10 @@ func main() {
 	db := LoadDatabase()
 	defer db.Client().Disconnect(context.Background())
 
-	
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	app := &application{
-		handlers: CreateHandlers(db),
+		handlers: CreateHandlers(db).WithLogger(logger),
 	}
 
 	app.run()

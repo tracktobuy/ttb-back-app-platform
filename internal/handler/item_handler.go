@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
@@ -12,18 +13,29 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type ItemHandler struct {
+type ItemHandler interface {
+	BaseHandler
+	Create(w http.ResponseWriter, r *http.Request)
+	GetAll(w http.ResponseWriter, r *http.Request)
+}
+
+type itemHandler struct {
+	logger   *slog.Logger
 	services internal.Service
 }
 
-func NewItemHandler(services internal.Service) *ItemHandler {
+func NewItemHandler(services internal.Service) ItemHandler {
 
-	return &ItemHandler{
+	return &itemHandler{
 		services: services,
 	}
 }
 
-func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *itemHandler) SetLogger(logger *slog.Logger) {
+	h.logger = logger
+}
+
+func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var request request.ItemRequest
 	err := helper.ReadJSON(w, r, &request)
@@ -75,7 +87,7 @@ func (h *ItemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *ItemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	groupID := r.URL.Query().Get("groupId")
 
@@ -107,7 +119,7 @@ func (h *ItemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": responseItems})
 }
 
-func (h *ItemHandler) formatItemResponse(item *domain.Item) *response.Item {
+func (h *itemHandler) formatItemResponse(item *domain.Item) *response.Item {
 	return &response.Item{
 		UUID:      item.UUID,
 		Title:     item.Title,

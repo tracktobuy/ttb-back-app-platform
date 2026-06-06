@@ -10,17 +10,28 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 )
 
-type GroupHandler struct {
+type GroupHandler interface {
+	BaseHandler
+	Get(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
+}
+
+type groupHandler struct {
+	logger  *slog.Logger
 	service internal.Service
 }
 
-func NewGroupHandler(service internal.Service) *GroupHandler {
-	return &GroupHandler{
+func NewGroupHandler(service internal.Service) GroupHandler {
+	return &groupHandler{
 		service: service,
 	}
 }
 
-func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (h *groupHandler) SetLogger(logger *slog.Logger) {
+	h.logger = logger
+}
+
+func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("groupId")
 
@@ -34,7 +45,7 @@ func (h *GroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": group})
 }
 
-func (h *GroupHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *groupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("groupId")
 	group, err := h.service.GroupService.Get(context.Background(), groupId)

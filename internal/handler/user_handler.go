@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
@@ -10,16 +11,27 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 )
 
-type UserHandler struct {
+type UserHandler interface {
+	BaseHandler
+	Create(w http.ResponseWriter, r *http.Request)
+}
+
+type userHandler struct {
+	logger  *slog.Logger
 	service internal.Service
 }
 
-func NewUserHandler(service internal.Service) *UserHandler {
-	return &UserHandler{service: service}
+func NewUserHandler(service internal.Service) UserHandler {
+	return &userHandler{service: service}
 }
 
-func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *userHandler) SetLogger(logger *slog.Logger) {
+	h.logger = logger
+}
+
+func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var userRequest request.Account
+
 	err := helper.ReadJSON(w, r, &userRequest)
 
 	if err != nil {
