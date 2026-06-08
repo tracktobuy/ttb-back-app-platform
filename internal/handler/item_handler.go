@@ -10,7 +10,6 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ItemHandler interface {
@@ -77,8 +76,6 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	item := domain.Item{
 		Title:  request.Title,
 		Images: []string{request.Image},
-		Groups: []primitive.ObjectID{group.ID},
-		Stores: []primitive.ObjectID{newStore.ID},
 	}
 
 	newItem, err := h.services.ItemService.Create(context.Background(), item)
