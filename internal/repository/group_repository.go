@@ -70,8 +70,6 @@ func (g *mongoGroupRepo) Update(ctx context.Context, item *domain.Group) (*domai
 			"name":           item.Name,
 			"budget":         item.Budget,
 			"budgetCurrency": item.BudgetCurrency,
-			"items":          item.Items,
-			"users":          item.Users,
 			"updatedAt":      item.UpdatedAt,
 		},
 	}
