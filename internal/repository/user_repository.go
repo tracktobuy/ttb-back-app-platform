@@ -90,7 +90,6 @@ func (u *mongoUserRepo) Update(ctx context.Context, item domain.User) (*domain.U
 			"version":   item.Version,
 			"name":      item.Name,
 			"username":  item.Username,
-			"groups":    item.Groups,
 			"updatedAt": item.UpdatedAt,
 		},
 	}
