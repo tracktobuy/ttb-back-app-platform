@@ -36,9 +36,10 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var accountRequest request.Account
 	err := helper.ReadJSON(w, r, &accountRequest)
 
-	h.logger.Info("CreateAccount", "handler", "AccountHandler", "payload", accountRequest)
+	h.logger.Info("create account request", "handler", "AccountHandler", "method", "CreateAccount", "payload", accountRequest)
 
 	if err != nil {
+		h.logger.Error("create account failed", "handler", "AccountHandler", "method", "CreateAccount", "error", err.Error())
 		helper.WriteJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
 		return
 	}
@@ -46,12 +47,13 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	user, group, err := h.services.AccountService.CreateAccount(accountRequest)
 
 	if err != nil {
+		h.logger.Error("created account failed", "handler", "AccountHandler", "method", "CreateAccount", "error", err.Error())
 		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"error": err.Error()})
 		return
 	}
 
 	response := h.newAccountResponse(*user, group)
-
+	h.logger.Info("create account success", "handler", "AccountHandler", "method", "CreateAccount", "response", response)
 	helper.WriteJSON(w, http.StatusCreated, envelope{"data": response})
 
 }
