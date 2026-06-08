@@ -14,10 +14,10 @@ const USERS_COLLECTION_NAME = "users"
 
 type UserRepository interface {
 	Create(ctx context.Context, item domain.User) (*domain.User, error)
-	Get(ctx context.Context, id string) (*domain.User, error)
+	GetById(ctx context.Context, id primitive.ObjectID) (*domain.User, error)
 	GetAll(ctx context.Context) ([]domain.User, error)
 	Update(ctx context.Context, item domain.User) (*domain.User, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, uuid string) error
 }
 
 type mongoUserRepo struct {
@@ -43,7 +43,7 @@ func (u *mongoUserRepo) Create(ctx context.Context, item domain.User) (*domain.U
 	return &item, nil
 }
 
-func (u *mongoUserRepo) Get(ctx context.Context, id string) (*domain.User, error) {
+func (u *mongoUserRepo) GetById(ctx context.Context, id primitive.ObjectID) (*domain.User, error) {
 
 	var user *domain.User
 
@@ -99,7 +99,7 @@ func (u *mongoUserRepo) Update(ctx context.Context, item domain.User) (*domain.U
 		return nil, err
 	}
 
-	return u.Get(ctx, item.ID.Hex())
+	return u.GetById(ctx, item.ID)
 }
 
 func (u *mongoUserRepo) Delete(ctx context.Context, id string) error {

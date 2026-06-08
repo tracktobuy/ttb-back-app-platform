@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ItemService interface {
-	Create(ctx context.Context, item domain.Item) (*domain.Item, error)
+	Create(ctx context.Context, item domain.Item) (*response.Item, error)
 	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
 }
 
@@ -25,8 +26,9 @@ func NewItemService(repo repository.ItemRepository) ItemService {
 	}
 }
 
-func (s *itemService) Create(ctx context.Context, item domain.Item) (*domain.Item, error) {
+func (s *itemService) Create(ctx context.Context, item domain.Item) (*response.Item, error) {
 
+	item.ID = primitive.NewObjectID()
 	item.UUID = helper.GenerateUUIDV7()
 	item.Version = 1
 	item.CreatedAt = time.Now().UTC()
@@ -37,7 +39,18 @@ func (s *itemService) Create(ctx context.Context, item domain.Item) (*domain.Ite
 		return nil, err
 	}
 
-	return newItem, nil
+	response := &response.Item{
+		ID:          newItem.ID,
+		UUID:        newItem.UUID,
+		Title:       newItem.Title,
+		Images:      newItem.Images,
+		Labels:      newItem.Labels,
+		CreatedAt:   helper.DateTime(newItem.CreatedAt),
+		UpdatedAt:   helper.DateTime(newItem.UpdatedAt),
+		CreatedByID: newItem.CreatedBy,
+	}
+
+	return response, nil
 }
 
 func (s *itemService) GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error) {

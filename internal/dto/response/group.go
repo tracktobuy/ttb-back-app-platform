@@ -9,6 +9,7 @@ type Group struct {
 	Budget         float32            `json:"budget"`
 	BudgetCurrency string             `json:"budgetCurrency"`
 	CreatedAt      string             `json:"createdAt"`
-	UpdatedAt      string             `json:"updatedAt"`
-	CreatedBy      string             `json:"createdBy,omitempty"`
+	UpdatedAt      string             `json:"updatedAt,omitempty"`
+	CreatedByUUID  string             `json:"createdBy,omitempty"`
+	CreatedByID    primitive.ObjectID `json:"-"`
 }

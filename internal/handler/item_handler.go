@@ -57,25 +57,12 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	store := domain.Store{
-		UUID:       helper.GenerateUUIDV7(),
-		Price:      request.Price,
-		Currency:   request.Currency,
-		Domain:     request.Domain,
-		Name:       request.Store,
-		BestOption: false,
-	}
-
-	newStore, err := h.services.StoreService.Create(context.Background(), store)
-	if err != nil {
-		h.log.Error("creating store for item failed", "error", err.Error())
-		helper.InternalServerError(w, err)
-		return
-	}
+	user, err := h.services.UserService.GetById(context.Background(), group.CreatedByID)
 
 	item := domain.Item{
-		Title:  request.Title,
-		Images: []string{request.Image},
+		Title:     request.Title,
+		Images:    []string{request.Image},
+		CreatedBy: user.ID,
 	}
 
 	newItem, err := h.services.ItemService.Create(context.Background(), item)
@@ -86,12 +73,27 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := h.formatItemResponse(newItem)
-	response.Groups = []string{group.UUID}
-	response.Stores = []string{newStore.UUID}
+	store := domain.Store{
+		UUID:       helper.GenerateUUIDV7(),
+		Price:      request.Price,
+		Currency:   request.Currency,
+		Domain:     request.Domain,
+		Name:       request.Store,
+		BestOption: false,
+		Item:       newItem.ID,
+		CreatedBy:  user.ID,
+		URL:        request.URL,
+	}
 
-	h.log.Info("creating new item success", "response", response)
-	helper.WriteJSON(w, http.StatusCreated, envelope{"data": response})
+	_, err = h.services.StoreService.Create(context.Background(), store)
+	if err != nil {
+		h.log.Error("creating store for item failed", "error", err.Error())
+		helper.InternalServerError(w, err)
+		return
+	}
+
+	h.log.Info("creating new item success", "response", newItem)
+	helper.WriteJSON(w, http.StatusCreated, envelope{"data": newItem})
 
 }
 
@@ -125,12 +127,11 @@ func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		responseItems = append(responseItems, *responseItem)
 	}
 
+	h.log.Info("get all items by group id success", "groupId", groupID, "total items found", len(responseItems))
 	if len(responseItems) == 0 {
 		helper.WriteJSON(w, http.StatusOK, envelope{"data": []response.Item{}})
 		return
 	}
-
-	h.log.Info("get all items by group id success", "groupId", groupID, "total items found", len(responseItems))
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": responseItems})
 }
