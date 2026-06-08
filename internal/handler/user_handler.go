@@ -2,13 +2,13 @@ package handler
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 )
 
 type UserHandler interface {
@@ -17,7 +17,7 @@ type UserHandler interface {
 }
 
 type userHandler struct {
-	logger  *slog.Logger
+	log     logger.Logger
 	service internal.Service
 }
 
@@ -25,14 +25,20 @@ func NewUserHandler(service internal.Service) UserHandler {
 	return &userHandler{service: service}
 }
 
-func (h *userHandler) SetLogger(logger *slog.Logger) {
-	h.logger = logger
+func (h *userHandler) SetLogger(log logger.Logger) {
+	h.log = log
 }
 
 func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
+
+	h.log.SetHandlerName("UserHandler")
+	h.log.SetMethodName("Create")
+
 	var userRequest request.Account
 
 	err := helper.ReadJSON(w, r, &userRequest)
+
+	h.log.Info("create new user", "request", userRequest)
 
 	if err != nil {
 		helper.BadRequest(w, err)
@@ -52,6 +58,8 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 		helper.InternalServerError(w, err)
 		return
 	}
+
+	h.log.Info("create new user success", "response", userRequest)
 
 	helper.WriteJSON(w, http.StatusCreated, envelope{"data": user})
 }

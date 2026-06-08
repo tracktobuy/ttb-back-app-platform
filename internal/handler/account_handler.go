@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
@@ -9,6 +8,7 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 )
 
 type AccountHandler interface {
@@ -17,7 +17,7 @@ type AccountHandler interface {
 }
 
 type accountHandler struct {
-	logger   *slog.Logger
+	log      logger.Logger
 	services internal.Service
 }
 
@@ -27,19 +27,22 @@ func NewAccountHandler(services internal.Service) AccountHandler {
 	}
 }
 
-func (h *accountHandler) SetLogger(logger *slog.Logger) {
-	h.logger = logger
+func (h *accountHandler) SetLogger(log logger.Logger) {
+	h.log = log
 }
 
 func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
+	h.log.SetHandlerName("AccountHandler")
+	h.log.SetMethodName("CreateAccount")
+
 	var accountRequest request.Account
 	err := helper.ReadJSON(w, r, &accountRequest)
 
-	h.logger.Info("create account request", "handler", "AccountHandler", "method", "CreateAccount", "payload", accountRequest)
+	h.log.Info("create account request", "payload", accountRequest)
 
 	if err != nil {
-		h.logger.Error("create account failed", "handler", "AccountHandler", "method", "CreateAccount", "error", err.Error())
+		h.log.Error("create account failed", "error", err.Error())
 		helper.WriteJSON(w, http.StatusBadRequest, envelope{"error": err.Error()})
 		return
 	}
@@ -47,13 +50,13 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	user, group, err := h.services.AccountService.CreateAccount(accountRequest)
 
 	if err != nil {
-		h.logger.Error("created account failed", "handler", "AccountHandler", "method", "CreateAccount", "error", err.Error())
+		h.log.Error("created account failed", "error", err.Error())
 		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"error": err.Error()})
 		return
 	}
 
 	response := h.newAccountResponse(*user, group)
-	h.logger.Info("create account success", "handler", "AccountHandler", "method", "CreateAccount", "response", response)
+	h.log.Info("create account success", "response", response)
 	helper.WriteJSON(w, http.StatusCreated, envelope{"data": response})
 
 }

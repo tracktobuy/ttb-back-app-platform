@@ -1,10 +1,9 @@
 package main
 
 import (
-	"log/slog"
-
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/handler"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,10 +26,10 @@ func CreateHandlers(db *mongo.Database) *Handler {
 	}
 }
 
-func (h *Handler) WithLogger(logger *slog.Logger) *Handler {
-	h.AccountHandler.SetLogger(logger)
-	h.GroupHandler.SetLogger(logger)
-	h.ItemHandler.SetLogger(logger)
-	h.UserHandler.SetLogger(logger)
+func (h *Handler) WithLogger(log logger.Logger) *Handler {
+	h.AccountHandler.SetLogger(log)
+	h.GroupHandler.SetLogger(log)
+	h.ItemHandler.SetLogger(log)
+	h.UserHandler.SetLogger(log)
 	return h
 }

@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"log/slog"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 )
 
 type BaseHandler interface {
-	SetLogger(logger *slog.Logger)
+	SetLogger(log logger.Logger)
 }
