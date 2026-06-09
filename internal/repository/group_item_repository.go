@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const WISHLIST_COLLECTION_NAME = "wishlists"
+const GROUP_ITEM_COLLECTION_NAME = "group_item"
 
 type GroupItemRepository interface {
 	Create(ctx context.Context, item domain.GroupItem) (*domain.GroupItem, error)
@@ -21,7 +21,7 @@ type mongoGroupItemRepo struct {
 
 func NewGroupItemRepo(db *mongo.Database) GroupItemRepository {
 	return &mongoGroupItemRepo{
-		collection: db.Collection(WISHLIST_COLLECTION_NAME),
+		collection: db.Collection(GROUP_ITEM_COLLECTION_NAME),
 	}
 }
 

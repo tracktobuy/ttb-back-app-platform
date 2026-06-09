@@ -92,6 +92,18 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	groupItem := domain.GroupItem{
+		GroupId: group.ID,
+		ItemId:  newItem.ID,
+	}
+
+	_, err = h.services.GroupItemService.Create(context.Background(), groupItem)
+	if err != nil {
+		h.log.Error("creating junction with group and item", "error", err.Error())
+		helper.InternalServerError(w, err)
+		return
+	}
+
 	h.log.Info("creating new item success", "response", newItem)
 	helper.WriteJSON(w, http.StatusCreated, envelope{"data": newItem})
 

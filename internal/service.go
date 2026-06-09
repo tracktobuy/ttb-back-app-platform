@@ -9,6 +9,7 @@ type Service struct {
 	ItemService      service.ItemService
 	StoreService     service.StoreService
 	UserGroupService service.UserGroupService
+	GroupItemService service.GroupItemService
 }
 
 func CreateServices(repo Repository) Service {
@@ -18,12 +19,15 @@ func CreateServices(repo Repository) Service {
 	itemService := service.NewItemService(repo.ItemRepo)
 	storeService := service.NewStoreService(repo.StoreRepo)
 	userGroupService := service.NewUserGroupService(repo.UserGroupRepo)
+	groupItemService := service.NewGroupItemService(repo.GroupItemRepo)
 
 	return Service{
-		UserService:    userService,
-		GroupService:   groupService,
-		AccountService: service.NewAccountService(userService, groupService, userGroupService),
-		ItemService:    itemService,
-		StoreService:   storeService,
+		UserService:      userService,
+		GroupService:     groupService,
+		AccountService:   service.NewAccountService(userService, groupService, userGroupService),
+		ItemService:      itemService,
+		StoreService:     storeService,
+		UserGroupService: userGroupService,
+		GroupItemService: groupItemService,
 	}
 }
