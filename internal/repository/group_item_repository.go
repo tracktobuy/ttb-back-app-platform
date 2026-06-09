@@ -11,21 +11,21 @@ import (
 
 const WISHLIST_COLLECTION_NAME = "wishlists"
 
-type WishlistRepository interface {
-	Create(ctx context.Context, item domain.Wishlist) (*domain.Wishlist, error)
+type GroupItemRepository interface {
+	Create(ctx context.Context, item domain.GroupItem) (*domain.GroupItem, error)
 }
 
-type mongoWishlistRepo struct {
+type mongoGroupItemRepo struct {
 	collection *mongo.Collection
 }
 
-func NewWishlistRepo(db *mongo.Database) WishlistRepository {
-	return &mongoWishlistRepo{
+func NewGroupItemRepo(db *mongo.Database) GroupItemRepository {
+	return &mongoGroupItemRepo{
 		collection: db.Collection(WISHLIST_COLLECTION_NAME),
 	}
 }
 
-func (r *mongoWishlistRepo) Create(ctx context.Context, item domain.Wishlist) (*domain.Wishlist, error) {
+func (r *mongoGroupItemRepo) Create(ctx context.Context, item domain.GroupItem) (*domain.GroupItem, error) {
 
 	item.ID = primitive.NewObjectID()
 	item.JoinedAt = time.Now().UTC()

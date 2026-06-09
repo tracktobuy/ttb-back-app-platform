@@ -15,14 +15,16 @@ type AccountService interface {
 }
 
 type accountService struct {
-	userService  UserService
-	groupService GroupService
+	userService      UserService
+	groupService     GroupService
+	userGroupService UserGroupService
 }
 
-func NewAccountService(userService UserService, groupService GroupService) *accountService {
+func NewAccountService(userService UserService, groupService GroupService, userGroupService UserGroupService) *accountService {
 	return &accountService{
-		userService:  userService,
-		groupService: groupService,
+		userService:      userService,
+		groupService:     groupService,
+		userGroupService: userGroupService,
 	}
 }
 
@@ -49,6 +51,12 @@ func (s *accountService) CreateAccount(account request.Account) (*domain.User, *
 		slog.Error("Error when creating default group to user", "error", err.Error())
 		return nil, nil, err
 	}
+
+	userGroup := domain.UserGroup{
+		UserId:  newUser.ID,
+		GroupId: newGroup.ID,
+	}
+	s.userGroupService.Create(ctx, userGroup)
 
 	return newUser, newGroup, nil
 }
