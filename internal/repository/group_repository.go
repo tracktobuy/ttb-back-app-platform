@@ -15,7 +15,7 @@ const GROUPS_COLLECTION_NAME = "groups"
 
 type GroupRepository interface {
 	Create(ctx context.Context, item domain.Group) (*domain.Group, error)
-	Get(ctx context.Context, id string) (*domain.Group, error)
+	Get(ctx context.Context, uuid string) (*domain.Group, error)
 	Update(ctx context.Context, item *domain.Group) (*domain.Group, error)
 	Delete(ctx context.Context, id string) error
 }
@@ -45,11 +45,11 @@ func (g *mongoGroupRepo) Create(ctx context.Context, item domain.Group) (*domain
 	return &item, nil
 }
 
-func (g *mongoGroupRepo) Get(ctx context.Context, id string) (*domain.Group, error) {
+func (g *mongoGroupRepo) Get(ctx context.Context, uuid string) (*domain.Group, error) {
 
 	var group *domain.Group
 
-	err := g.collection.FindOne(ctx, bson.M{"uuid": id}).Decode(&group)
+	err := g.collection.FindOne(ctx, bson.M{"uuid": uuid}).Decode(&group)
 	if err != nil {
 		return nil, err
 	}
