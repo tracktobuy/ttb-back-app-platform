@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/config"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,10 +17,8 @@ func main() {
 	db := LoadDatabase()
 	defer db.Client().Disconnect(context.Background())
 
-	log := logger.NewLogger()
-
 	app := &application{
-		handlers: CreateHandlers(db).WithLogger(log),
+		handlers: CreateHandlers(db),
 	}
 
 	app.run()

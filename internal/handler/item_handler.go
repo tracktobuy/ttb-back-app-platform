@@ -13,7 +13,6 @@ import (
 )
 
 type ItemHandler interface {
-	BaseHandler
 	Create(w http.ResponseWriter, r *http.Request)
 	GetAll(w http.ResponseWriter, r *http.Request)
 }
@@ -25,18 +24,17 @@ type itemHandler struct {
 
 func NewItemHandler(services internal.Service) ItemHandler {
 
+	log := logger.NewLogger()
+	log.SetHandlerName("ItemHandler")
+
 	return &itemHandler{
 		services: services,
+		log:      log,
 	}
-}
-
-func (h *itemHandler) SetLogger(log logger.Logger) {
-	h.log = log
 }
 
 func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
-	h.log.SetHandlerName("ItemHandler")
 	h.log.SetMethodName("Create")
 
 	var request request.ItemRequest
@@ -116,7 +114,6 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
-	h.log.SetHandlerName("ItemHandler")
 	h.log.SetMethodName("GetAll")
 
 	groupID := r.URL.Query().Get("groupId")

@@ -11,7 +11,6 @@ import (
 )
 
 type GroupHandler interface {
-	BaseHandler
 	Get(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 }
@@ -22,18 +21,17 @@ type groupHandler struct {
 }
 
 func NewGroupHandler(service internal.Service) GroupHandler {
+
+	log := logger.NewLogger()
+	log.SetHandlerName("GroupHandler")
+
 	return &groupHandler{
 		service: service,
+		log:     log,
 	}
 }
-
-func (h *groupHandler) SetLogger(log logger.Logger) {
-	h.log = log
-}
-
 func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
-	h.log.SetHandlerName("GroupHandler")
 	h.log.SetMethodName("Get")
 
 	groupId := r.PathValue("groupId")
@@ -55,7 +53,6 @@ func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (h *groupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
-	h.log.SetHandlerName("GroupHandler")
 	h.log.SetMethodName("Update")
 
 	groupId := r.PathValue("groupId")

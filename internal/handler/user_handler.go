@@ -12,7 +12,6 @@ import (
 )
 
 type UserHandler interface {
-	BaseHandler
 	Create(w http.ResponseWriter, r *http.Request)
 }
 
@@ -22,16 +21,14 @@ type userHandler struct {
 }
 
 func NewUserHandler(service internal.Service) UserHandler {
-	return &userHandler{service: service}
-}
+	log := logger.NewLogger()
+	log.SetHandlerName("UserHandler")
 
-func (h *userHandler) SetLogger(log logger.Logger) {
-	h.log = log
+	return &userHandler{service: service, log: log}
 }
 
 func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 
-	h.log.SetHandlerName("UserHandler")
 	h.log.SetMethodName("Create")
 
 	var userRequest request.Account

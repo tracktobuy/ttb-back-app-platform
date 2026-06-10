@@ -13,7 +13,6 @@ import (
 )
 
 type AccountHandler interface {
-	BaseHandler
 	CreateAccount(w http.ResponseWriter, r *http.Request)
 }
 
@@ -23,18 +22,17 @@ type accountHandler struct {
 }
 
 func NewAccountHandler(services internal.Service) AccountHandler {
+
+	log := logger.NewLogger()
+	log.SetHandlerName("AccountHandler")
+
 	return &accountHandler{
 		services: services,
+		log:      log,
 	}
 }
 
-func (h *accountHandler) SetLogger(log logger.Logger) {
-	h.log = log
-}
-
 func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
-
-	h.log.SetHandlerName("AccountHandler")
 	h.log.SetMethodName("CreateAccount")
 
 	var accountRequest request.Account
