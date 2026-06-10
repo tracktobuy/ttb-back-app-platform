@@ -57,7 +57,12 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.services.UserService.GetById(context.Background(), group.CreatedByID)
+	ac := helper.GetCookie(w, r)
+
+	user, err := h.services.UserService.GetById(context.Background(), ac.ObjectID())
+	if err != nil {
+		h.log.Error("user not found", "error", err.Error())
+	}
 
 	item := domain.Item{
 		Title:     request.Title,

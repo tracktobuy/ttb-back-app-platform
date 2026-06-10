@@ -1,13 +1,18 @@
 package helper
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"log"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/cookie"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, data any) error {
@@ -72,4 +77,57 @@ func GenerateUUIDV7() string {
 	}
 
 	return value.String()
+}
+
+func SetCookie(w http.ResponseWriter, ac cookie.Account) {
+	json, err := json.Marshal(ac)
+	if err != nil {
+		log.Fatalf("error marshaling JSON: %v", err)
+	}
+
+	content := base64.StdEncoding.EncodeToString(json)
+
+	cookie := http.Cookie{
+		Name:     "account",
+		Value:    content,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, &cookie)
+}
+
+func GetCookie(w http.ResponseWriter, r *http.Request) *cookie.Account {
+	log := logger.NewLogger()
+	log.SetComponentName("Helper")
+	log.SetMethodName("GetCookie")
+
+	c, err := r.Cookie("account")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			log.Error("cookie not found")
+			BadRequest(w, err)
+		default:
+			log.Error("generic error", err.Error())
+			http.Error(w, "server error", http.StatusInternalServerError)
+		}
+		return nil
+	}
+
+	var ac *cookie.Account
+
+	content, err := base64.StdEncoding.DecodeString(c.Value)
+	if err != nil {
+		log.Error("error cooking decode base64", "error", err.Error())
+	}
+
+	err = json.Unmarshal([]byte(content), &ac)
+	if err != nil {
+		log.Error("error unmarshaling JSON", "json", c.Value)
+	}
+	return ac
 }

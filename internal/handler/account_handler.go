@@ -5,6 +5,7 @@ import (
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/cookie"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
@@ -54,6 +55,12 @@ func (h *accountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"error": err.Error()})
 		return
 	}
+
+	ac := cookie.Account{
+		UserID:   user.ID.Hex(),
+		UserUUID: user.UUID,
+	}
+	helper.SetCookie(w, ac)
 
 	response := h.newAccountResponse(*user, group)
 	h.log.Info("create account success", "response", response)
