@@ -13,7 +13,8 @@ import (
 
 type ItemService interface {
 	Create(ctx context.Context, item domain.Item) (*response.Item, error)
-	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
+	GetAllByGroupID(ctx context.Context, groupId primitive.ObjectID) ([]domain.Item, error)
+	GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Item, error)
 }
 
 type itemService struct {
@@ -53,12 +54,44 @@ func (s *itemService) Create(ctx context.Context, item domain.Item) (*response.I
 	return response, nil
 }
 
-func (s *itemService) GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error) {
+func (s *itemService) GetAllByGroupID(ctx context.Context, groupId primitive.ObjectID) ([]domain.Item, error) {
 
-	items, err := s.repo.GetAllByGroupID(ctx, groupID)
+	items, err := s.repo.GetAllByGroupID(ctx, groupId)
 	if err != nil {
 		return []domain.Item{}, err
 	}
 
 	return items, nil
+}
+
+func (s *itemService) GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Item, error) {
+
+	items, err := s.repo.GetAllByUserId(ctx, userId)
+	if err != nil {
+		return []response.Item{}, err
+	}
+	resp := s.formatItemsResponse(items)
+	return resp, nil
+}
+
+func (s *itemService) formatItemsResponse(items []domain.Item) []response.Item {
+	var resp []response.Item
+	for _, item := range items {
+		tmp := s.formatItemResponse(item)
+		resp = append(resp, tmp)
+	}
+	return resp
+}
+
+func (s *itemService) formatItemResponse(item domain.Item) response.Item {
+	return response.Item{
+		UUID:      item.UUID,
+		Title:     item.Title,
+		Images:    item.Images,
+		CreatedAt: helper.DateTime(item.CreatedAt),
+		UpdatedAt: helper.DateTime(item.UpdatedAt),
+		Labels:    item.Labels,
+		Stores:    []string{},
+		Groups:    []string{},
+	}
 }

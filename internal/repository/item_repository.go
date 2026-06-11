@@ -6,6 +6,7 @@ import (
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,14 +19,27 @@ type ItemRepository interface {
 	Get(ctx context.Context, id string) (*domain.Item, error)
 	Delete(ctx context.Context, id string) error
 	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
+	GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]domain.Item, error)
 }
 
 type itemRepo struct {
-	collection *mongo.Collection
+	log          logger.Logger
+	collection   *mongo.Collection
+	ugCollection *mongo.Collection
+}
+
+type aggregationResult struct {
+	ItemsDetails []domain.Item `bson:"items_details"`
 }
 
 func NewItemRepo(db *mongo.Database) ItemRepository {
-	return &itemRepo{collection: db.Collection(ITEMS_COLLECTION_NAME)}
+	log := logger.NewLogger()
+	log.SetRepositoryName("ItemRepository")
+	return &itemRepo{
+		collection:   db.Collection(ITEMS_COLLECTION_NAME),
+		ugCollection: db.Collection(USER_GROUP_COLLECTION_NAME),
+		log:          log,
+	}
 }
 
 func (r *itemRepo) Create(ctx context.Context, item domain.Item) (*domain.Item, error) {
@@ -81,4 +95,70 @@ func (r *itemRepo) GetAllByGroupID(ctx context.Context, groupID primitive.Object
 	}
 
 	return items, nil
+}
+
+func (r *itemRepo) GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]domain.Item, error) {
+
+	r.log.SetMethodName("GetAllByUserId")
+
+	cursor, err := r.ugCollection.Aggregate(ctx, r.getPipeline(userId))
+	if err != nil {
+		return []domain.Item{}, err
+	}
+
+	defer cursor.Close(ctx)
+
+	var results []aggregationResult
+
+	if err = cursor.All(ctx, &results); err != nil {
+		r.log.Error("failed to decode results", "error", err.Error())
+		return []domain.Item{}, err
+	}
+
+	if len(results) == 0 {
+		r.log.Error("no results found", "userId", userId, "total items found", len(results))
+		return []domain.Item{}, nil
+	}
+
+	return results[0].ItemsDetails, nil
+
+}
+
+func (r *itemRepo) getPipeline(userId primitive.ObjectID) mongo.Pipeline {
+	return mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"userId": userId}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "users",
+			"localField":   "userId",
+			"foreignField": "_id",
+			"as":           "users_details",
+		}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "groups",
+			"localField":   "groupId",
+			"foreignField": "_id",
+			"as":           "group_details",
+		}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "group_item",
+			"localField":   "groupId",
+			"foreignField": "groupId",
+			"as":           "group_item",
+		}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "items",
+			"localField":   "group_item.itemId",
+			"foreignField": "_id",
+			"as":           "items_details",
+		}}},
+		{{Key: "$unwind", Value: "$items_details"}},
+		{{Key: "$group", Value: bson.M{
+			"_id":           nil,
+			"items_details": bson.M{"$addToSet": "$items_details"},
+		}}},
+		{{Key: "$project", Value: bson.M{
+			"_id":           0,
+			"items_details": 1,
+		}}},
+	}
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
-	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 )
@@ -117,80 +116,19 @@ func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	h.log.SetMethodName("GetAll")
 
-	groupID := r.URL.Query().Get("groupId")
-
-	h.log.Info("get all items by group id", "groupId", groupID)
-
-	group, err := h.services.GroupService.Get(context.Background(), groupID)
-	if err != nil {
-		h.log.Error("find group by id failed", "groupId", groupID, "error", err.Error())
-		helper.WriteJSON(w, http.StatusNotFound, envelope{"data": nil, "message": "Group not found", "error": err.Error()})
-		return
-	}
-
-	items, err := h.services.ItemService.GetAllByGroupID(context.Background(), group.ID)
-
-	if err != nil {
-		helper.InternalServerError(w, err)
-		return
-	}
-
-	var responseItems []response.Item
-
-	for _, item := range items {
-		responseItem := h.formatItemResponse(&item)
-		responseItems = append(responseItems, *responseItem)
-	}
-
-	h.log.Info("get all items by group id success", "groupId", groupID, "total items found", len(responseItems))
-	if len(responseItems) == 0 {
-		helper.WriteJSON(w, http.StatusOK, envelope{"data": []response.Item{}})
-		return
-	}
-
-	helper.WriteJSON(w, http.StatusOK, envelope{"data": responseItems})
-}
-
-func (h *itemHandler) GetAll2(w http.ResponseWriter, r *http.Request) {
-
-	h.log.SetMethodName("GetAll")
-
 	acc := helper.GetCookie(w, r)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	groups, err := h.services.GroupService.GetGroupsByUserId(ctx, acc.UserObjectID())
+	h.log.Info("get all items by user uuid", "userUUID", acc.UserUUID)
+
+	items, err := h.services.ItemService.GetAllByUserId(ctx, acc.UserObjectID())
 	if err != nil {
+		h.log.Error("error when get items for user", "userUUID", acc.UserUUID, "error", err.Error())
 		helper.InternalServerError(w, err)
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": items})
 
-	var itemsIDs []domain.GroupItem
-
-	for _, group := range groups {
-		tmpItems, err := h.services.GroupItemService.GetAllByGroupId(ctx, group.ID)
-		if err != nil {
-			helper.InternalServerError(w, err)
-			break
-		}
-
-		itemsIDs = append(itemsIDs, tmpItems...)
-	}
-
-}
-
-func (h *itemHandler) formatItemResponse(item *domain.Item) *response.Item {
-	return &response.Item{
-		UUID:      item.UUID,
-		Title:     item.Title,
-		Images:    item.Images,
-		CreatedAt: helper.DateTime(item.CreatedAt),
-		UpdatedAt: helper.DateTime(item.UpdatedAt),
-		Labels:    item.Labels,
-		Stores:    []string{},
-		Groups:    []string{},
-	}
 }
