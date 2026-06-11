@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
@@ -57,7 +58,7 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ac := helper.GetCookie(w, r)
 
-	user, err := h.services.UserService.GetById(context.Background(), ac.ObjectID())
+	user, err := h.services.UserService.GetById(context.Background(), ac.UserObjectID())
 	if err != nil {
 		h.log.Error("user not found", "error", err.Error())
 	}
@@ -148,6 +149,37 @@ func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": responseItems})
+}
+
+func (h *itemHandler) GetAll2(w http.ResponseWriter, r *http.Request) {
+
+	h.log.SetMethodName("GetAll")
+
+	acc := helper.GetCookie(w, r)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	groups, err := h.services.GroupService.GetGroupsByUserId(ctx, acc.UserObjectID())
+	if err != nil {
+		helper.InternalServerError(w, err)
+	}
+
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	var itemsIDs []domain.GroupItem
+
+	for _, group := range groups {
+		tmpItems, err := h.services.GroupItemService.GetAllByGroupId(ctx, group.ID)
+		if err != nil {
+			helper.InternalServerError(w, err)
+			break
+		}
+
+		itemsIDs = append(itemsIDs, tmpItems...)
+	}
+
 }
 
 func (h *itemHandler) formatItemResponse(item *domain.Item) *response.Item {
