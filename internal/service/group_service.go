@@ -9,11 +9,13 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type GroupService interface {
 	Create(ctx context.Context, item request.Group, user domain.User) (*response.Group, error)
 	Get(ctx context.Context, uuid string) (*response.Group, error)
+	GetGroupsByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Group, error)
 	Update(ctx context.Context, id string, item request.Group) (*response.Group, error)
 	CreateDefaultGroup(ctx context.Context, user domain.User) (*response.Group, error)
 }
@@ -113,6 +115,10 @@ func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User)
 	}
 
 	return s.formatGroupResponse(newGroup), nil
+}
+
+func (s *groupService) GetGroupsByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Group, error) {
+	return []response.Group{}, nil
 }
 
 func (s *groupService) formatGroupResponse(group *domain.Group) *response.Group {
