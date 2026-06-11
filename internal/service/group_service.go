@@ -45,14 +45,11 @@ func (s *groupService) Create(ctx context.Context, reqGroup request.Group, user 
 		CreatedBy:      user.ID,
 	}
 
-	s.log.Info("new group to be created", "group", item)
 	newGroup, err := s.repo.Create(ctx, item)
 	if err != nil {
 		s.log.Error("Error when creating group", "error", err.Error())
 		return nil, err
 	}
-
-	s.log.Info("new group created", "group", newGroup)
 
 	return s.formatGroupResponse(newGroup), nil
 }
@@ -60,7 +57,6 @@ func (s *groupService) Create(ctx context.Context, reqGroup request.Group, user 
 func (s *groupService) Get(ctx context.Context, uuid string) (*response.Group, error) {
 
 	s.log.SetMethodName("Get")
-	s.log.Info("searching group by UUID", "uuid", uuid)
 
 	group, err := s.repo.Get(ctx, uuid)
 	if err != nil {
@@ -68,10 +64,7 @@ func (s *groupService) Get(ctx context.Context, uuid string) (*response.Group, e
 		return nil, err
 	}
 
-	s.log.Info("group found with UUID", "uuid", uuid)
-
 	return s.formatGroupResponse(group), nil
-
 }
 
 func (s *groupService) Update(ctx context.Context, id string, reqGroup request.Group) (*response.Group, error) {
@@ -79,6 +72,7 @@ func (s *groupService) Update(ctx context.Context, id string, reqGroup request.G
 
 	grp, err := s.repo.Get(ctx, id)
 	if err != nil {
+		s.log.Error("error updating group details group not found", "uuid", id, "request", reqGroup, "error", err.Error())
 		return nil, err
 	}
 
@@ -109,6 +103,7 @@ func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User)
 
 	newGroup, err := s.repo.Create(ctx, defaultGroup)
 	if err != nil {
+		s.log.Error("error creating new default group", "defaultGroup", defaultGroup)
 		return nil, err
 	}
 
