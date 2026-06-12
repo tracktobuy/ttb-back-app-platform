@@ -16,7 +16,7 @@ const ITEMS_COLLECTION_NAME = "items"
 
 type ItemRepository interface {
 	Create(ctx context.Context, item domain.Item) (*domain.Item, error)
-	Get(ctx context.Context, id string) (*domain.Item, error)
+	Get(ctx context.Context, itemUUID string) (*domain.Item, error)
 	Delete(ctx context.Context, id string) error
 	GetAllByGroupID(ctx context.Context, groupID primitive.ObjectID) ([]domain.Item, error)
 	GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]domain.Item, error)
@@ -55,9 +55,9 @@ func (r *itemRepo) Create(ctx context.Context, item domain.Item) (*domain.Item, 
 	return &item, nil
 }
 
-func (r *itemRepo) Get(ctx context.Context, id string) (*domain.Item, error) {
+func (r *itemRepo) Get(ctx context.Context, itemUUID string) (*domain.Item, error) {
 	var item domain.Item
-	err := r.collection.FindOne(ctx, bson.M{"uuid": id}).Decode(&item)
+	err := r.collection.FindOne(ctx, bson.M{"uuid": itemUUID}).Decode(&item)
 	if err != nil {
 		return nil, err
 	}

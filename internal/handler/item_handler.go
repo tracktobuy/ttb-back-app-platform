@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -10,11 +11,13 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ItemHandler interface {
 	Create(w http.ResponseWriter, r *http.Request)
 	GetAll(w http.ResponseWriter, r *http.Request)
+	GetByUUID(w http.ResponseWriter, r *http.Request)
 }
 
 type itemHandler struct {
@@ -131,4 +134,28 @@ func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": items})
 
+}
+
+func (h *itemHandler) GetByUUID(w http.ResponseWriter, r *http.Request) {
+
+	h.log.SetMethodName("GetByUUID")
+
+	itemUUID := r.PathValue("itemId")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	item, err := h.services.ItemService.GetByUUID(ctx, itemUUID)
+	if err != nil {
+		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			helper.NotFound(w, err)
+			return
+		}
+
+		helper.InternalServerError(w, err)
+
+	}
+
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": item})
 }

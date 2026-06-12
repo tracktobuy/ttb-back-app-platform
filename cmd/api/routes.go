@@ -16,6 +16,7 @@ func (app *application) routes() http.Handler {
 	// Items
 	mux.HandleFunc("POST /items", app.handlers.ItemHandler.Create)
 	mux.HandleFunc("GET /items", app.handlers.ItemHandler.GetAll)
+	mux.HandleFunc("GET /items/{itemId}", app.handlers.ItemHandler.GetByUUID)
 
 	// Users
 	mux.HandleFunc("POST /users", app.handlers.UserHandler.Create)

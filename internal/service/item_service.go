@@ -13,6 +13,7 @@ import (
 
 type ItemService interface {
 	Create(ctx context.Context, item domain.Item) (*response.Item, error)
+	GetByUUID(ctx context.Context, itemUUID string) (*response.Item, error)
 	GetAllByGroupID(ctx context.Context, groupId primitive.ObjectID) ([]domain.Item, error)
 	GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Item, error)
 }
@@ -52,6 +53,17 @@ func (s *itemService) Create(ctx context.Context, item domain.Item) (*response.I
 	}
 
 	return response, nil
+}
+
+func (s *itemService) GetByUUID(ctx context.Context, itemUUID string) (*response.Item, error) {
+
+	it, err := s.repo.Get(ctx, itemUUID)
+	if err != nil {
+		return nil, err
+	}
+
+	item := s.formatItemResponse(*it)
+	return &item, nil
 }
 
 func (s *itemService) GetAllByGroupID(ctx context.Context, groupId primitive.ObjectID) ([]domain.Item, error) {
