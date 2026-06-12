@@ -38,13 +38,37 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 }
 
 func BadRequest(w http.ResponseWriter, err error) {
-	slog.Error("Bad request: %+v", err)
-	WriteJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
+
+	log := logger.NewLogger()
+	log.SetComponentName("helper")
+	log.SetMethodName("BadRequest")
+
+	log.Error("bad request", "error", err.Error())
+	empty := map[string]any{}
+
+	WriteJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error(), "data": empty})
+}
+
+func NotFound(w http.ResponseWriter, err error) {
+	log := logger.NewLogger()
+	log.SetComponentName("helper")
+	log.SetMethodName("NotFound")
+	log.Error("resource not found", "error", err.Error())
+
+	empty := map[string]any{}
+
+	WriteJSON(w, http.StatusNotFound, map[string]any{"error": "resource not found", "data": empty})
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
-	slog.Error("Internal server error: %+v", err)
-	WriteJSON(w, http.StatusInternalServerError, map[string]any{"error": "Internal Server Error"})
+	log := logger.NewLogger()
+	log.SetComponentName("helper")
+	log.SetMethodName("InternalServerError")
+
+	empty := map[string]any{}
+
+	log.Error("internal server error", "error", err.Error())
+	WriteJSON(w, http.StatusInternalServerError, map[string]any{"error": "Internal Server Error", "data": empty})
 }
 
 func ReadParam(r *http.Request, key string) string {
