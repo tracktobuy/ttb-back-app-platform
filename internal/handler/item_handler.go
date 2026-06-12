@@ -83,7 +83,7 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Domain:     request.Domain,
 		Name:       request.Store,
 		BestOption: false,
-		Item:       newItem.ID,
+		ItemId:     newItem.ID,
 		CreatedBy:  user.ID,
 		URL:        request.URL,
 	}
