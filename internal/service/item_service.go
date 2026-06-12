@@ -7,6 +7,7 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -19,12 +20,18 @@ type ItemService interface {
 }
 
 type itemService struct {
+	log  logger.Logger
 	repo repository.ItemRepository
 }
 
 func NewItemService(repo repository.ItemRepository) ItemService {
+
+	log := logger.NewLogger()
+	log.SetServiceName("ItemService")
+
 	return &itemService{
 		repo: repo,
+		log:  log,
 	}
 }
 
@@ -97,6 +104,7 @@ func (s *itemService) formatItemsResponse(items []domain.Item) []response.Item {
 
 func (s *itemService) formatItemResponse(item domain.Item) response.Item {
 	return response.Item{
+		ID:        item.ID,
 		UUID:      item.UUID,
 		Title:     item.Title,
 		Images:    item.Images,
