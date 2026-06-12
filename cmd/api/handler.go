@@ -11,6 +11,7 @@ type Handler struct {
 	GroupHandler   handler.GroupHandler
 	ItemHandler    handler.ItemHandler
 	UserHandler    handler.UserHandler
+	StoreHandler   handler.StoreHandler
 }
 
 func CreateHandlers(db *mongo.Database) *Handler {
@@ -22,5 +23,6 @@ func CreateHandlers(db *mongo.Database) *Handler {
 		GroupHandler:   handler.NewGroupHandler(services),
 		ItemHandler:    handler.NewItemHandler(services),
 		UserHandler:    handler.NewUserHandler(services),
+		StoreHandler:   handler.NewStoreHandler(services),
 	}
 }

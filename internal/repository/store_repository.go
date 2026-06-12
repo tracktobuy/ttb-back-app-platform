@@ -6,6 +6,9 @@ import (
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -13,14 +16,24 @@ const STORES_COLLECTION_NAME = "stores"
 
 type StoreRepository interface {
 	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
+	GetStoresByItemId(ctx context.Context, itemId primitive.ObjectID) ([]domain.Store, error)
+	Update(ctx context.Context, store domain.Store) (*domain.Store, error)
+	Delete(ctx context.Context, storeId primitive.ObjectID) error
 }
 
 type storeRepo struct {
+	log        logger.Logger
 	collection *mongo.Collection
 }
 
 func NewStoreRepo(db *mongo.Database) StoreRepository {
-	return &storeRepo{collection: db.Collection(STORES_COLLECTION_NAME)}
+	log := logger.NewLogger()
+	log.SetRepositoryName("StoreRepository")
+
+	return &storeRepo{
+		collection: db.Collection(STORES_COLLECTION_NAME),
+		log:        log,
+	}
 }
 
 func (r *storeRepo) Create(ctx context.Context, item domain.Store) (*domain.Store, error) {
@@ -35,4 +48,33 @@ func (r *storeRepo) Create(ctx context.Context, item domain.Store) (*domain.Stor
 	}
 
 	return &item, nil
+}
+
+func (r *storeRepo) GetStoresByItemId(ctx context.Context, itemId primitive.ObjectID) ([]domain.Store, error) {
+
+	r.log.Info("get stores by item id", "itemID", itemId)
+
+	var stores []domain.Store
+
+	cursor, err := r.collection.Find(ctx, bson.M{"itemId": itemId})
+
+	if err != nil {
+		return []domain.Store{}, err
+	}
+
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &stores); err != nil {
+		return []domain.Store{}, err
+	}
+
+	return stores, nil
+}
+
+func (r *storeRepo) Update(ctx context.Context, store domain.Store) (*domain.Store, error) {
+	return nil, nil
+}
+
+func (r *storeRepo) Delete(ctx context.Context, storeId primitive.ObjectID) error {
+	return nil
 }

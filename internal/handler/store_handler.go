@@ -1,0 +1,64 @@
+package handler
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/tracktobuy/ttb-back-app-platform/internal"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type StoreHandler interface {
+	GetStoresByItemId(w http.ResponseWriter, r *http.Request)
+}
+
+type storeHandler struct {
+	log      logger.Logger
+	services internal.Service
+}
+
+func NewStoreHandler(svc internal.Service) StoreHandler {
+
+	log := logger.NewLogger()
+	log.SetHandlerName("StoreHandler")
+
+	return &storeHandler{
+		services: svc,
+		log:      log,
+	}
+}
+
+func (h *storeHandler) GetStoresByItemId(w http.ResponseWriter, r *http.Request) {
+	h.log.SetMethodName("GetStoresByItemId")
+
+	itemUUID := r.PathValue("itemId")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	item, err := h.services.ItemService.GetByUUID(ctx, itemUUID)
+	if err != nil {
+		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			helper.NotFound(w, err)
+			return
+		}
+
+		helper.InternalServerError(w, err)
+	}
+
+	h.log.Info("searching stores by item UUID", "uuid", itemUUID)
+	stores, err := h.services.StoreService.GetStoresByItemId(ctx, item.ID)
+	if err != nil {
+		h.log.Error("something went wrong when listing stores", "itemUUID", itemUUID, "error", err.Error())
+		helper.InternalServerError(w, err)
+	}
+
+	h.log.Info("stores found", "total stores", len(stores))
+
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": stores})
+
+}
