@@ -17,6 +17,7 @@ const STORES_COLLECTION_NAME = "stores"
 type StoreRepository interface {
 	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
 	GetStoresByItemId(ctx context.Context, itemId primitive.ObjectID) ([]domain.Store, error)
+	GetStoreByUUID(ctx context.Context, storeUUID string) (domain.Store, error)
 	Update(ctx context.Context, store domain.Store) (*domain.Store, error)
 	Delete(ctx context.Context, storeId primitive.ObjectID) error
 }
@@ -76,5 +77,22 @@ func (r *storeRepo) Update(ctx context.Context, store domain.Store) (*domain.Sto
 }
 
 func (r *storeRepo) Delete(ctx context.Context, storeId primitive.ObjectID) error {
+
+	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": storeId})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (r *storeRepo) GetStoreByUUID(ctx context.Context, storeUUID string) (domain.Store, error) {
+
+	var str domain.Store
+	if err := r.collection.FindOne(ctx, bson.M{"uuid": storeUUID}).Decode(&str); err != nil {
+		return domain.Store{}, err
+	}
+
+	return str, nil
 }

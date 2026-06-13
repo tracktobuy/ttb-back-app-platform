@@ -20,6 +20,7 @@ func (app *application) routes() http.Handler {
 
 	// Stores
 	mux.HandleFunc("GET /items/{itemId}/stores", app.handlers.StoreHandler.GetStoresByItemId)
+	mux.HandleFunc("DELETE /stores/{storeId}", app.handlers.StoreHandler.Delete)
 
 	// Users
 	mux.HandleFunc("POST /users", app.handlers.UserHandler.Create)

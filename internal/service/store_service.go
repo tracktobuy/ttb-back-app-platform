@@ -13,6 +13,8 @@ import (
 type StoreService interface {
 	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
 	GetStoresByItemId(ctx context.Context, itemId primitive.ObjectID) ([]response.Store, error)
+	GetStoreByUUID(ctx context.Context, storeUUID string) (response.Store, error)
+	Delete(ctx context.Context, storeId primitive.ObjectID) error
 }
 
 type storeService struct {
@@ -38,25 +40,49 @@ func (s *storeService) GetStoresByItemId(ctx context.Context, itemId primitive.O
 		return []response.Store{}, err
 	}
 
+	stores := s.formatStores(strs)
+	return stores, nil
+}
+
+func (s *storeService) Delete(ctx context.Context, storeId primitive.ObjectID) error {
+	return s.repo.Delete(ctx, storeId)
+}
+
+func (r *storeService) GetStoreByUUID(ctx context.Context, storeUUID string) (response.Store, error) {
+
+	str, err := r.repo.GetStoreByUUID(ctx, storeUUID)
+	if err != nil {
+		return response.Store{}, err
+	}
+
+	store := r.formatStore(str)
+	return store, nil
+}
+
+func (r *storeService) formatStores(input []domain.Store) []response.Store {
 	var stores []response.Store
 
-	for _, str := range strs {
-		tmp := response.Store{
-			ID:           str.ID,
-			UUID:         str.UUID,
-			Price:        str.Price,
-			ShippingCost: str.ShippingCost,
-			Currency:     str.Currency,
-			Domain:       str.Domain,
-			Name:         str.Name,
-			BestOption:   str.BestOption,
-			URL:          str.URL,
-			CreatedAt:    helper.DateTime(str.CreatedAt),
-			UpdatedAt:    helper.DateTime(str.UpdatedAt),
-		}
-
+	for _, store := range input {
+		tmp := r.formatStore(store)
 		stores = append(stores, tmp)
 	}
 
-	return stores, nil
+	return stores
+}
+
+func (r *storeService) formatStore(input domain.Store) response.Store {
+
+	return response.Store{
+		ID:           input.ID,
+		UUID:         input.UUID,
+		Price:        input.Price,
+		ShippingCost: input.ShippingCost,
+		Currency:     input.Currency,
+		Domain:       input.Domain,
+		Name:         input.Name,
+		BestOption:   input.BestOption,
+		URL:          input.URL,
+		CreatedAt:    helper.DateTime(input.CreatedAt),
+		UpdatedAt:    helper.DateTime(input.UpdatedAt),
+	}
 }

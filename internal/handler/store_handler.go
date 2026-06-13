@@ -14,6 +14,7 @@ import (
 
 type StoreHandler interface {
 	GetStoresByItemId(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 }
 
 type storeHandler struct {
@@ -61,4 +62,35 @@ func (h *storeHandler) GetStoresByItemId(w http.ResponseWriter, r *http.Request)
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": stores})
 
+}
+
+func (h *storeHandler) Delete(w http.ResponseWriter, r *http.Request) {
+
+	h.log.SetMethodName("Delete")
+
+	storeUUID := r.PathValue("storeId")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	store, err := h.services.StoreService.GetStoreByUUID(ctx, storeUUID)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			h.log.Error("deleting store, store not found", "storeUUID", storeUUID, "error", err.Error())
+			helper.NotFound(w, err)
+			return
+		}
+
+		h.log.Error("an error occurred when deleting store", "storeUUID", storeUUID, "error", err.Error())
+	}
+
+	err = h.services.StoreService.Delete(ctx, store.ID)
+	if err != nil {
+		h.log.Error("error deleting store", "storeUUID", storeUUID, "error", err.Error())
+		helper.InternalServerError(w, err)
+		return
+	}
+
+	helper.WriteJSON(w, http.StatusNoContent, envelope{})
 }
