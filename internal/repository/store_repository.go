@@ -73,7 +73,25 @@ func (r *storeRepo) GetStoresByItemId(ctx context.Context, itemId primitive.Obje
 }
 
 func (r *storeRepo) Update(ctx context.Context, store domain.Store) (*domain.Store, error) {
-	return nil, nil
+
+	version := store.Version
+	store.UpdatedAt = time.Now().UTC()
+	store.Version += 1
+
+	updateData := bson.M{
+		"$set": bson.M{
+			"shippingCost": store.ShippingCost,
+			"version":      store.Version,
+			"updatedAt":    store.UpdatedAt,
+		},
+	}
+
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": store.ID, "version": version}, updateData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &store, nil
 }
 
 func (r *storeRepo) Delete(ctx context.Context, storeId primitive.ObjectID) error {
