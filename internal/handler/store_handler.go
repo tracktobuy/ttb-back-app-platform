@@ -8,6 +8,7 @@ import (
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -62,6 +63,11 @@ func (h *storeHandler) GetStoresByItemId(w http.ResponseWriter, r *http.Request)
 
 	h.log.Info("stores found", "total stores", len(stores))
 
+	if len(stores) == 0 {
+		helper.WriteJSON(w, http.StatusOK, envelope{"data": []response.Store{}})
+		return
+	}
+
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": stores})
 
 }
@@ -81,7 +87,7 @@ func (h *storeHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	
+
 	resp, err := h.services.StoreService.Update(ctx, storeUUID, storeReq)
 	if err != nil {
 		h.log.Error("error when updating store", "storeUUID", storeUUID, "error", err.Error())
