@@ -9,6 +9,7 @@ import (
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -130,6 +131,11 @@ func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Error("error when get items for user", "userUUID", acc.UserUUID, "error", err.Error())
 		helper.InternalServerError(w, err)
+	}
+
+	if len(items) == 0 {
+		helper.WriteJSON(w, http.StatusOK, envelope{"data": []response.Item{}})
+		return
 	}
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": items})
