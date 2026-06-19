@@ -69,6 +69,7 @@ func (s *storeService) Update(ctx context.Context, storeUUID string, storeReq re
 	}
 
 	store.ShippingCost = storeReq.ShippingCost
+	store.Currency = storeReq.ShippingCurrency
 	updStore, err := s.repo.Update(ctx, store)
 
 	if err != nil {

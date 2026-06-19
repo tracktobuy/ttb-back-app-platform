@@ -1,5 +1,6 @@
 package request
 
 type Store struct {
-	ShippingCost float32 `json:"shippingCost"`
+	ShippingCost     float32 `json:"shippingCost"`
+	ShippingCurrency string  `json:"shippingCurrency"`
 }

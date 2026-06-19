@@ -81,6 +81,7 @@ func (r *storeRepo) Update(ctx context.Context, store domain.Store) (*domain.Sto
 	updateData := bson.M{
 		"$set": bson.M{
 			"shippingCost": store.ShippingCost,
+			"currency":     store.Currency,
 			"version":      store.Version,
 			"updatedAt":    store.UpdatedAt,
 		},
