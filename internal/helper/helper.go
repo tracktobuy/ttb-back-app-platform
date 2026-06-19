@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/cookie"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 )
 
@@ -43,10 +44,16 @@ func BadRequest(w http.ResponseWriter, err error) {
 	log.SetComponentName("helper")
 	log.SetMethodName("BadRequest")
 
-	log.Error("bad request", "error", err.Error())
-	empty := map[string]any{}
+	resp := response.ClientError{
+		Status:    400,
+		Code:      "BAD_REQUEST",
+		Message:   err.Error(),
+		Timestamp: DateTime(time.Now().UTC()),
+	}
 
-	WriteJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error(), "data": empty})
+	log.Error("bad request", "response", resp)
+
+	WriteJSON(w, http.StatusBadRequest, map[string]any{"error": resp})
 }
 
 func NotFound(w http.ResponseWriter, err error) {
