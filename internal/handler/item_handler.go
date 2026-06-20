@@ -69,6 +69,7 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 	item := domain.Item{
 		Title:     request.Title,
 		Images:    []string{request.Image},
+		Labels:    request.Labels,
 		CreatedBy: user.ID,
 	}
 
