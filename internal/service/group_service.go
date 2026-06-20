@@ -16,6 +16,8 @@ type GroupService interface {
 	Get(ctx context.Context, uuid string) (*response.Group, error)
 	Update(ctx context.Context, id string, item request.Group) (*response.Group, error)
 	CreateDefaultGroup(ctx context.Context, user domain.User) (*response.Group, error)
+
+	GetLabels(ctx context.Context, groupUUID string) (response.GroupLabel, error)
 }
 
 type groupService struct {
@@ -108,6 +110,10 @@ func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User)
 	}
 
 	return s.formatGroupResponse(newGroup), nil
+}
+
+func (s *groupService) GetLabels(ctx context.Context, groupUUID string) (response.GroupLabel, error) {
+	return s.repo.GetLabels(ctx, groupUUID)
 }
 
 func (s *groupService) formatGroupResponse(group *domain.Group) *response.Group {

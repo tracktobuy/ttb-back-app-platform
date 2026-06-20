@@ -10,8 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const USERS_COLLECTION_NAME = "users"
-
 type UserRepository interface {
 	Create(ctx context.Context, item domain.User) (*domain.User, error)
 	GetById(ctx context.Context, id primitive.ObjectID) (*domain.User, error)

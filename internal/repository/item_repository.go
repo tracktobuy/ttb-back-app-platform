@@ -12,8 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const ITEMS_COLLECTION_NAME = "items"
-
 type ItemRepository interface {
 	Create(ctx context.Context, item domain.Item) (*domain.Item, error)
 	Get(ctx context.Context, itemUUID string) (*domain.Item, error)

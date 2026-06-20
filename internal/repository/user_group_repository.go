@@ -9,8 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const USER_GROUP_COLLECTION_NAME = "user_group"
-
 type UserGroupRepository interface {
 	Create(ctx context.Context, item domain.UserGroup) (*domain.UserGroup, error)
 }

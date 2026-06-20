@@ -2,17 +2,22 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type GroupHandler interface {
 	Get(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
+
+	GetLabels(w http.ResponseWriter, r *http.Request)
 }
 
 type groupHandler struct {
@@ -30,6 +35,7 @@ func NewGroupHandler(service internal.Service) GroupHandler {
 		log:     log,
 	}
 }
+
 func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	h.log.SetMethodName("Get")
@@ -91,4 +97,35 @@ func (h *groupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Info("update group request success", "groupId", groupId, "request", updatedGroup)
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": updatedGroup})
+}
+
+func (h *groupHandler) GetLabels(w http.ResponseWriter, r *http.Request) {
+
+	h.log.SetMethodName("GetLabels")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	groupUUID := r.PathValue("groupId")
+
+	h.log.Info("listing labels for group", "groupUUID", groupUUID)
+
+	data, err := h.service.GroupService.GetLabels(ctx, groupUUID)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			h.log.Error("group not found", "groupUUID", groupUUID)
+			helper.NotFound(w, err)
+			return
+		}
+
+		h.log.Error("error when get labels", "groupUUID", groupUUID)
+		helper.InternalServerError(w, err)
+		return
+	}
+
+	h.log.Info("listing labels for group success", "groupUUID", groupUUID, "total labels", len(data.Labels))
+
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": data})
+
 }

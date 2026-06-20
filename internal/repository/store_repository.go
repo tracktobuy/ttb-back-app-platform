@@ -12,8 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const STORES_COLLECTION_NAME = "stores"
-
 type StoreRepository interface {
 	Create(ctx context.Context, item domain.Store) (*domain.Store, error)
 	GetStoresByItemId(ctx context.Context, itemId primitive.ObjectID) ([]domain.Store, error)

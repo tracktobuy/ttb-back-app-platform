@@ -9,8 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const GROUP_ITEM_COLLECTION_NAME = "group_item"
-
 type GroupItemRepository interface {
 	Create(ctx context.Context, item domain.GroupItem) (*domain.GroupItem, error)
 }
