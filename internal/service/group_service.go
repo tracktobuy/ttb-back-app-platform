@@ -18,6 +18,7 @@ type GroupService interface {
 	CreateDefaultGroup(ctx context.Context, user domain.User) (*response.Group, error)
 
 	GetLabels(ctx context.Context, groupUUID string) (response.GroupLabel, error)
+	GetItems(ctx context.Context, groupUUID string) (response.GroupItem, error)
 }
 
 type groupService struct {
@@ -114,6 +115,19 @@ func (s *groupService) CreateDefaultGroup(ctx context.Context, user domain.User)
 
 func (s *groupService) GetLabels(ctx context.Context, groupUUID string) (response.GroupLabel, error) {
 	return s.repo.GetLabels(ctx, groupUUID)
+}
+
+func (s *groupService) GetItems(ctx context.Context, groupUUID string) (response.GroupItem, error) {
+	groupItem, err := s.repo.GetItems(ctx, groupUUID)
+	if err != nil {
+		return response.GroupItem{}, err
+	}
+
+	if len(groupItem.Items) == 0 {
+		groupItem.Items = []response.Item{}
+	}
+
+	return groupItem, nil
 }
 
 func (s *groupService) formatGroupResponse(group *domain.Group) *response.Group {

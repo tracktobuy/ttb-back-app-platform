@@ -18,6 +18,7 @@ type GroupHandler interface {
 	Update(w http.ResponseWriter, r *http.Request)
 
 	GetLabels(w http.ResponseWriter, r *http.Request)
+	GetItems(w http.ResponseWriter, r *http.Request)
 }
 
 type groupHandler struct {
@@ -128,4 +129,32 @@ func (h *groupHandler) GetLabels(w http.ResponseWriter, r *http.Request) {
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": data})
 
+}
+
+func (h *groupHandler) GetItems(w http.ResponseWriter, r *http.Request) {
+	h.log.SetMethodName("GetItems")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	groupUUID := r.PathValue("groupId")
+
+	h.log.Info("listing items for group", "groupUUID", groupUUID)
+
+	data, err := h.service.GroupService.GetItems(ctx, groupUUID)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			h.log.Error("group not found", "groupUUID", groupUUID)
+			helper.NotFound(w, err)
+			return
+		}
+
+		h.log.Error("error when get items", "groupUUID", groupUUID)
+		helper.InternalServerError(w, err)
+		return
+	}
+
+	h.log.Info("listing items for group success", "groupUUID", groupUUID, "total items", len(data.Items))
+	helper.WriteJSON(w, http.StatusOK, envelope{"data": data})
 }

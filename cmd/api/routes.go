@@ -13,6 +13,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("PUT /groups/{groupId}", app.handlers.GroupHandler.Update)
 	mux.HandleFunc("GET /groups/{groupId}", app.handlers.GroupHandler.Get)
 	mux.HandleFunc("GET /groups/{groupId}/labels", app.handlers.GroupHandler.GetLabels)
+	mux.HandleFunc("GET /groups/{groupId}/items", app.handlers.GroupHandler.GetItems)
 
 	// Items
 	mux.HandleFunc("POST /items", app.handlers.ItemHandler.Create)

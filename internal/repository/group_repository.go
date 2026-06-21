@@ -19,6 +19,7 @@ type GroupRepository interface {
 	Delete(ctx context.Context, id string) error
 
 	GetLabels(ctx context.Context, groupUUID string) (response.GroupLabel, error)
+	GetItems(ctx context.Context, groupUUID string) (response.GroupItem, error)
 }
 
 type mongoGroupRepo struct {
@@ -119,6 +120,59 @@ func (g *mongoGroupRepo) GetLabels(ctx context.Context, groupUUID string) (respo
 	return response.GroupLabel{}, err
 }
 
+func (g *mongoGroupRepo) GetItems(ctx context.Context, groupUUID string) (response.GroupItem, error) {
+
+	group, err := g.Get(ctx, groupUUID)
+	if err != nil {
+		return response.GroupItem{}, err
+	}
+
+	cursor, err := g.giCollection.Aggregate(ctx, g.itemsMongoPipeline(group.ID))
+	if err != nil {
+		return response.GroupItem{}, err
+	}
+
+	defer cursor.Close(ctx)
+
+	type TmpResult struct {
+		GroupUUID string        `bson:"groupUUID"`
+		GroupName string        `bson:"groupName"`
+		Items     []domain.Item `bson:"items"`
+	}
+
+	var tmpResult []TmpResult
+	if err = cursor.All(ctx, &tmpResult); err != nil {
+		return response.GroupItem{}, err
+	}
+
+	if len(tmpResult) == 0 {
+		return response.GroupItem{}, err
+	}
+
+	items := tmpResult[0].Items
+	var respItems []response.Item
+
+	for _, i := range items {
+		tmp := response.Item{
+			ID:        i.ID,
+			UUID:      i.UUID,
+			Title:     i.Title,
+			Images:    i.Images,
+			CreatedAt: helper.DateTime(i.CreatedAt),
+			UpdatedAt: helper.DateTime(i.UpdatedAt),
+			Labels:    i.Labels,
+		}
+		respItems = append(respItems, tmp)
+	}
+
+	return response.GroupItem{
+		GroupUUID: tmpResult[0].GroupUUID,
+		GroupName: tmpResult[0].GroupName,
+		Items:     respItems,
+	}, nil
+
+}
+
 func (g *mongoGroupRepo) labelsMongoPipeline(groupID primitive.ObjectID) mongo.Pipeline {
 
 	return mongo.Pipeline{
@@ -153,6 +207,43 @@ func (g *mongoGroupRepo) labelsMongoPipeline(groupID primitive.ObjectID) mongo.P
 			"_id":       0,
 			"items":     1,
 			"labels":    1,
+			"groupName": 1,
+			"groupUUID": 1,
+		}}},
+	}
+}
+
+func (g *mongoGroupRepo) itemsMongoPipeline(groupID primitive.ObjectID) mongo.Pipeline {
+
+	return mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"groupId": groupID}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "items",
+			"localField":   "itemId",
+			"foreignField": "_id",
+			"as":           "itemDetails",
+		}}},
+
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "groups",
+			"localField":   "groupId",
+			"foreignField": "_id",
+			"as":           "groupDetails",
+		}}},
+
+		{{Key: "$unwind", Value: "$itemDetails"}},
+		{{Key: "$unwind", Value: "$groupDetails"}},
+
+		{{Key: "$group", Value: bson.M{
+			"_id":       nil,
+			"items":     bson.M{"$addToSet": "$itemDetails"},
+			"groupName": bson.M{"$first": "$groupDetails.uuid"},
+			"groupUUID": bson.M{"$first": "$groupDetails.uuid"},
+		}}},
+
+		{{Key: "$project", Value: bson.M{
+			"_id":       0,
+			"items":     1,
 			"groupName": 1,
 			"groupUUID": 1,
 		}}},
