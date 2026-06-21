@@ -41,9 +41,10 @@ func NewItemRepo(db *mongo.Database) ItemRepository {
 }
 
 func (r *itemRepo) Create(ctx context.Context, item domain.Item) (*domain.Item, error) {
+	item.ID = primitive.NewObjectID()
 	item.UUID = helper.GenerateUUIDV7()
 	item.Version = 1
-	item.CreatedAt = time.Now()
+	item.CreatedAt = time.Now().UTC()
 
 	_, err := r.collection.InsertOne(ctx, item)
 	if err != nil {

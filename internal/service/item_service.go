@@ -2,21 +2,18 @@ package service
 
 import (
 	"context"
-	"time"
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal/domain"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/repository"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ItemService interface {
-	Create(ctx context.Context, item domain.Item) (*response.Item, error)
+	Create(ctx context.Context, user *domain.User, item domain.Item) (*response.Item, error)
 	GetByUUID(ctx context.Context, itemUUID string) (*response.Item, error)
-	GetAllByGroupID(ctx context.Context, groupId primitive.ObjectID) ([]domain.Item, error)
-	GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Item, error)
+	GetAllByUserId(ctx context.Context, user *domain.User) ([]response.Item, error)
 }
 
 type itemService struct {
@@ -35,12 +32,7 @@ func NewItemService(repo repository.ItemRepository) ItemService {
 	}
 }
 
-func (s *itemService) Create(ctx context.Context, item domain.Item) (*response.Item, error) {
-
-	item.ID = primitive.NewObjectID()
-	item.UUID = helper.GenerateUUIDV7()
-	item.Version = 1
-	item.CreatedAt = time.Now().UTC()
+func (s *itemService) Create(ctx context.Context, user *domain.User, item domain.Item) (*response.Item, error) {
 
 	newItem, err := s.repo.Create(ctx, item)
 
@@ -48,18 +40,9 @@ func (s *itemService) Create(ctx context.Context, item domain.Item) (*response.I
 		return nil, err
 	}
 
-	response := &response.Item{
-		ID:          newItem.ID,
-		UUID:        newItem.UUID,
-		Title:       newItem.Title,
-		Images:      newItem.Images,
-		Labels:      newItem.Labels,
-		CreatedAt:   helper.DateTime(newItem.CreatedAt),
-		UpdatedAt:   helper.DateTime(newItem.UpdatedAt),
-		CreatedByID: newItem.CreatedBy,
-	}
+	response := s.formatItemResponse(user, *newItem)
 
-	return response, nil
+	return &response, nil
 }
 
 func (s *itemService) GetByUUID(ctx context.Context, itemUUID string) (*response.Item, error) {
@@ -69,41 +52,32 @@ func (s *itemService) GetByUUID(ctx context.Context, itemUUID string) (*response
 		return nil, err
 	}
 
-	item := s.formatItemResponse(*it)
+	item := s.formatItemResponse(nil, *it)
 	return &item, nil
 }
 
-func (s *itemService) GetAllByGroupID(ctx context.Context, groupId primitive.ObjectID) ([]domain.Item, error) {
+func (s *itemService) GetAllByUserId(ctx context.Context, user *domain.User) ([]response.Item, error) {
 
-	items, err := s.repo.GetAllByGroupID(ctx, groupId)
-	if err != nil {
-		return []domain.Item{}, err
-	}
-
-	return items, nil
-}
-
-func (s *itemService) GetAllByUserId(ctx context.Context, userId primitive.ObjectID) ([]response.Item, error) {
-
-	items, err := s.repo.GetAllByUserId(ctx, userId)
+	items, err := s.repo.GetAllByUserId(ctx, user.ID)
 	if err != nil {
 		return []response.Item{}, err
 	}
-	resp := s.formatItemsResponse(items)
+	resp := s.formatItemsResponse(user, items)
 	return resp, nil
 }
 
-func (s *itemService) formatItemsResponse(items []domain.Item) []response.Item {
+func (s *itemService) formatItemsResponse(user *domain.User, items []domain.Item) []response.Item {
 	var resp []response.Item
 	for _, item := range items {
-		tmp := s.formatItemResponse(item)
+		tmp := s.formatItemResponse(user, item)
 		resp = append(resp, tmp)
 	}
 	return resp
 }
 
-func (s *itemService) formatItemResponse(item domain.Item) response.Item {
-	return response.Item{
+func (s *itemService) formatItemResponse(user *domain.User, item domain.Item) response.Item {
+
+	i := response.Item{
 		ID:        item.ID,
 		UUID:      item.UUID,
 		Title:     item.Title,
@@ -114,4 +88,15 @@ func (s *itemService) formatItemResponse(item domain.Item) response.Item {
 		Stores:    []string{},
 		Groups:    []string{},
 	}
+
+	if user != nil {
+		i.CreatedBy = response.User{
+			ID:       user.ID,
+			UUID:     user.UUID,
+			Name:     user.Name,
+			Username: user.Username,
+		}
+	}
+
+	return i
 }

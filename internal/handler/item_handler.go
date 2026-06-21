@@ -73,7 +73,7 @@ func (h *itemHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CreatedBy: user.ID,
 	}
 
-	newItem, err := h.services.ItemService.Create(context.Background(), item)
+	newItem, err := h.services.ItemService.Create(context.Background(), user, item)
 
 	if err != nil {
 		h.log.Error("creating item failed", "error", err.Error())
@@ -128,7 +128,12 @@ func (h *itemHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Info("get all items by user uuid", "userUUID", acc.UserUUID)
 
-	items, err := h.services.ItemService.GetAllByUserId(ctx, acc.UserObjectID())
+	user, err := h.services.UserService.GetById(context.Background(), acc.UserObjectID())
+	if err != nil {
+		h.log.Error("user not found", "error", err.Error())
+	}
+
+	items, err := h.services.ItemService.GetAllByUserId(ctx, user)
 	if err != nil {
 		h.log.Error("error when get items for user", "userUUID", acc.UserUUID, "error", err.Error())
 		helper.InternalServerError(w, err)
@@ -152,6 +157,19 @@ func (h *itemHandler) GetByUUID(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
+	acc := helper.GetCookie(w, r)
+	user, err := h.services.UserService.GetById(ctx, acc.UserObjectID())
+
+	if err != nil {
+		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			helper.NotFound(w, err)
+			return
+		}
+
+		helper.InternalServerError(w, err)
+	}
+
 	item, err := h.services.ItemService.GetByUUID(ctx, itemUUID)
 	if err != nil {
 		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
@@ -161,7 +179,13 @@ func (h *itemHandler) GetByUUID(w http.ResponseWriter, r *http.Request) {
 		}
 
 		helper.InternalServerError(w, err)
+	}
 
+	item.CreatedBy = response.User{
+		ID:       user.ID,
+		UUID:     user.UUID,
+		Name:     user.Name,
+		Username: user.Username,
 	}
 
 	helper.WriteJSON(w, http.StatusOK, envelope{"data": item})
