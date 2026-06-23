@@ -27,6 +27,24 @@ type mongoGroupRepo struct {
 	giCollection *mongo.Collection
 }
 
+type tmpResult struct {
+	GroupUUID string    `bson:"groupUUID"`
+	GroupName string    `bson:"groupName"`
+	Items     []tmpItem `bson:"items"`
+}
+
+type tmpItem struct {
+	ID          primitive.ObjectID `bson:"_id"`
+	UUID        string             `bson:"uuid"`
+	Title       string             `bson:"title"`
+	Images      []string           `bson:"images"`
+	Labels      []string           `bson:"labels"`
+	CreatedAt   time.Time          `bson:"createdAt"`
+	UpdatedAt   time.Time          `bson:"updatedAt"`
+	LowestPrice float32            `bson:"lowestPrice"`
+	CreatedBy   response.User      `bson:"createdBy"`
+}
+
 func NewGroupRepo(db *mongo.Database) GroupRepository {
 	return &mongoGroupRepo{
 		collection:   db.Collection(GROUPS_COLLECTION_NAME),
@@ -134,13 +152,7 @@ func (g *mongoGroupRepo) GetItems(ctx context.Context, groupUUID string) (respon
 
 	defer cursor.Close(ctx)
 
-	type TmpResult struct {
-		GroupUUID string        `bson:"groupUUID"`
-		GroupName string        `bson:"groupName"`
-		Items     []domain.Item `bson:"items"`
-	}
-
-	var tmpResult []TmpResult
+	var tmpResult []tmpResult
 	if err = cursor.All(ctx, &tmpResult); err != nil {
 		return response.GroupItem{}, err
 	}
@@ -154,13 +166,19 @@ func (g *mongoGroupRepo) GetItems(ctx context.Context, groupUUID string) (respon
 
 	for _, i := range items {
 		tmp := response.Item{
-			ID:        i.ID,
-			UUID:      i.UUID,
-			Title:     i.Title,
-			Images:    i.Images,
-			CreatedAt: helper.DateTime(i.CreatedAt),
-			UpdatedAt: helper.DateTime(i.UpdatedAt),
-			Labels:    i.Labels,
+			ID:          i.ID,
+			UUID:        i.UUID,
+			Title:       i.Title,
+			Images:      i.Images,
+			CreatedAt:   helper.DateTime(i.CreatedAt),
+			UpdatedAt:   helper.DateTime(i.UpdatedAt),
+			Labels:      i.Labels,
+			LowestPrice: i.LowestPrice,
+			CreatedBy: response.User{
+				UUID:     i.CreatedBy.UUID,
+				Name:     i.CreatedBy.Name,
+				Username: i.CreatedBy.Username,
+			},
 		}
 		respItems = append(respItems, tmp)
 	}
@@ -225,6 +243,13 @@ func (g *mongoGroupRepo) itemsMongoPipeline(groupID primitive.ObjectID) mongo.Pi
 		}}},
 
 		{{Key: "$lookup", Value: bson.M{
+			"from":         "users",
+			"localField":   "itemDetails.createdBy",
+			"foreignField": "_id",
+			"as":           "user",
+		}}},
+
+		{{Key: "$lookup", Value: bson.M{
 			"from":         "groups",
 			"localField":   "groupId",
 			"foreignField": "_id",
@@ -233,19 +258,41 @@ func (g *mongoGroupRepo) itemsMongoPipeline(groupID primitive.ObjectID) mongo.Pi
 
 		{{Key: "$unwind", Value: "$itemDetails"}},
 		{{Key: "$unwind", Value: "$groupDetails"}},
+		{{Key: "$unwind", Value: "$user"}},
+
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "stores",
+			"localField":   "itemId",
+			"foreignField": "itemId",
+			"as":           "storeOptions",
+		}}},
 
 		{{Key: "$group", Value: bson.M{
-			"_id":       nil,
-			"items":     bson.M{"$addToSet": "$itemDetails"},
-			"groupName": bson.M{"$first": "$groupDetails.uuid"},
+			"_id":       "$groupId",
+			"groupName": bson.M{"$first": "$groupDetails.name"},
 			"groupUUID": bson.M{"$first": "$groupDetails.uuid"},
+			"items": bson.M{
+				"$push": bson.M{
+					"uuid":        "$itemDetails.uuid",
+					"title":       "$itemDetails.title",
+					"images":      "$itemDetails.images",
+					"labels":      "$itemDetails.labels",
+					"createdAt":   "$itemDetails.createdAt",
+					"lowestPrice": bson.M{"$min": "$storeOptions.price"},
+					"createdBy": bson.M{
+						"uuid":     "$user.uuid",
+						"name":     "$user.name",
+						"username": "$user.username",
+					},
+				},
+			},
 		}}},
 
 		{{Key: "$project", Value: bson.M{
 			"_id":       0,
-			"items":     1,
 			"groupName": 1,
 			"groupUUID": 1,
+			"items":     1,
 		}}},
 	}
 }
