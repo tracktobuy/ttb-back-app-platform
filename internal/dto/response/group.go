@@ -10,6 +10,5 @@ type Group struct {
 	BudgetCurrency string             `json:"budgetCurrency"`
 	CreatedAt      string             `json:"createdAt"`
 	UpdatedAt      string             `json:"updatedAt,omitempty"`
-	CreatedByUUID  string             `json:"createdBy,omitempty"`
-	CreatedByID    primitive.ObjectID `json:"-"`
+	CreatedBy      User               `json:"createdBy,omitempty"`
 }

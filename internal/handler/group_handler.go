@@ -8,6 +8,7 @@ import (
 
 	"github.com/tracktobuy/ttb-back-app-platform/internal"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/request"
+	"github.com/tracktobuy/ttb-back-app-platform/internal/dto/response"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/helper"
 	"github.com/tracktobuy/ttb-back-app-platform/internal/logger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -43,7 +44,10 @@ func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	groupId := r.PathValue("groupId")
 
-	group, err := h.service.GroupService.Get(context.Background(), groupId)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	group, err := h.service.GroupService.Get(ctx, groupId)
 
 	h.log.Info("get group by id", "groupId", groupId)
 
@@ -51,6 +55,20 @@ func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 		h.log.Error("get group by id", "error", err.Error())
 		helper.WriteJSON(w, http.StatusNotFound, envelope{"message": "Group not found", "data": nil})
 		return
+	}
+
+	user, err := h.service.UserService.GetById(ctx, group.CreatedBy.ID)
+	if err != nil {
+		h.log.Error("get group by id", "error", err.Error())
+		helper.NotFound(w, err)
+		return
+	}
+
+	group.CreatedBy = response.User{
+		ID:       user.ID,
+		UUID:     user.UUID,
+		Username: user.Username,
+		Name:     user.Name,
 	}
 
 	h.log.Info("get group by id success", "groupId", groupId, "response", group)
@@ -65,11 +83,21 @@ func (h *groupHandler) Update(w http.ResponseWriter, r *http.Request) {
 	groupId := r.PathValue("groupId")
 	h.log.Info("update group", "groupId", groupId)
 
-	group, err := h.service.GroupService.Get(context.Background(), groupId)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	group, err := h.service.GroupService.Get(ctx, groupId)
 
 	if err != nil {
 		h.log.Error("update group failed", "groupId", groupId, "error", err.Error())
 		helper.WriteJSON(w, http.StatusNotFound, envelope{"message": "Group not found", "data": nil})
+		return
+	}
+
+	user, err := h.service.UserService.GetById(ctx, group.CreatedBy.ID)
+	if err != nil {
+		h.log.Error("update group failed", "groupId", groupId, "error", err.Error())
+		helper.NotFound(w, err)
 		return
 	}
 
@@ -89,11 +117,18 @@ func (h *groupHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Info("update group request", "groupId", groupId, "request", group)
 
-	updatedGroup, err := h.service.GroupService.Update(context.Background(), groupId, reqGroup)
+	updatedGroup, err := h.service.GroupService.Update(ctx, groupId, reqGroup)
 	if err != nil {
 		h.log.Error("update group failed", "groupId", groupId, "error", err.Error())
 		helper.WriteJSON(w, http.StatusInternalServerError, envelope{"message": "Failed to update group", "data": envelope{"error": err.Error()}})
 		return
+	}
+
+	updatedGroup.CreatedBy = response.User{
+		ID:       user.ID,
+		UUID:     user.UUID,
+		Username: user.Username,
+		Name:     user.Name,
 	}
 
 	h.log.Info("update group request success", "groupId", groupId, "request", updatedGroup)

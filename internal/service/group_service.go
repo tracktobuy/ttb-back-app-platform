@@ -139,6 +139,8 @@ func (s *groupService) formatGroupResponse(group *domain.Group) *response.Group 
 		BudgetCurrency: group.BudgetCurrency,
 		CreatedAt:      helper.DateTime(group.CreatedAt),
 		UpdatedAt:      helper.DateTime(group.UpdatedAt),
-		CreatedByID:    group.CreatedBy,
+		CreatedBy: response.User{
+			ID: group.CreatedBy,
+		},
 	}
 }
