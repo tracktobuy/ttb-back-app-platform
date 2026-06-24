@@ -217,7 +217,7 @@ func (g *mongoGroupRepo) labelsMongoPipeline(groupID primitive.ObjectID) mongo.P
 			"_id":       nil,
 			"items":     bson.M{"$addToSet": "$itemDetails"},
 			"labels":    bson.M{"$addToSet": "$itemDetails.labels"},
-			"groupName": bson.M{"$first": "$groupDetails.uuid"},
+			"groupName": bson.M{"$first": "$groupDetails.name"},
 			"groupUUID": bson.M{"$first": "$groupDetails.uuid"},
 		}}},
 
