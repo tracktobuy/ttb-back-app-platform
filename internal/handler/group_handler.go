@@ -60,7 +60,11 @@ func (h *groupHandler) Get(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.UserService.GetById(ctx, group.CreatedBy.ID)
 	if err != nil {
 		h.log.Error("get group by id", "error", err.Error())
-		helper.NotFound(w, err)
+		details := response.ClientErrorDetails{
+			Field: "groupId",
+			Issue: "Group not found with groupUUID" + groupId,
+		}
+		helper.NotFound(w, r, err, details)
 		return
 	}
 
@@ -97,7 +101,11 @@ func (h *groupHandler) Update(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.UserService.GetById(ctx, group.CreatedBy.ID)
 	if err != nil {
 		h.log.Error("update group failed", "groupId", groupId, "error", err.Error())
-		helper.NotFound(w, err)
+		details := response.ClientErrorDetails{
+			Field: "groupId",
+			Issue: "Group not found with groupId" + groupId,
+		}
+		helper.NotFound(w, r, err, details)
 		return
 	}
 
@@ -151,7 +159,11 @@ func (h *groupHandler) GetLabels(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			h.log.Error("group not found", "groupUUID", groupUUID)
-			helper.NotFound(w, err)
+			details := response.ClientErrorDetails{
+				Field: "groupId",
+				Issue: "Group not found with groupId" + groupUUID,
+			}
+			helper.NotFound(w, r, err, details)
 			return
 		}
 
@@ -181,7 +193,11 @@ func (h *groupHandler) GetItems(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			h.log.Error("group not found", "groupUUID", groupUUID)
-			helper.NotFound(w, err)
+			details := response.ClientErrorDetails{
+				Field: "groupId",
+				Issue: "Group not found with groupId" + groupUUID,
+			}
+			helper.NotFound(w, r, err, details)
 			return
 		}
 

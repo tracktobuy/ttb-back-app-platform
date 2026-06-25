@@ -61,15 +61,27 @@ func BadRequest(w http.ResponseWriter, r *http.Request, err error, clientErrorDe
 	WriteJSON(w, http.StatusBadRequest, map[string]any{"error": resp})
 }
 
-func NotFound(w http.ResponseWriter, err error) {
+func NotFound(w http.ResponseWriter, r *http.Request, err error, clientErrorDetails ...response.ClientErrorDetails) {
 	log := logger.NewLogger()
 	log.SetComponentName("helper")
 	log.SetMethodName("NotFound")
 	log.Error("resource not found", "error", err.Error())
 
-	empty := map[string]any{}
+	resp := response.ClientError{
+		Status:    404,
+		Code:      "NOT_FOUND",
+		Message:   err.Error(),
+		Timestamp: DateTime(time.Now().UTC()),
+		Path:      r.URL.RequestURI(),
+	}
 
-	WriteJSON(w, http.StatusNotFound, map[string]any{"error": "resource not found", "data": empty})
+	if len(clientErrorDetails) > 0 {
+		resp.Details = clientErrorDetails
+	}
+
+	log.Error("bad request", "response", resp)
+
+	WriteJSON(w, http.StatusNotFound, map[string]any{"error": resp})
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {

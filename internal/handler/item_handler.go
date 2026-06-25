@@ -163,7 +163,7 @@ func (h *itemHandler) GetByUUID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			helper.NotFound(w, err)
+			helper.NotFound(w, r, err)
 			return
 		}
 
@@ -174,7 +174,7 @@ func (h *itemHandler) GetByUUID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			helper.NotFound(w, err)
+			helper.NotFound(w, r, err)
 			return
 		}
 

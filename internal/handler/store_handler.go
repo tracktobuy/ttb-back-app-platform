@@ -47,7 +47,7 @@ func (h *storeHandler) GetStoresByItemId(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		h.log.Error("finding item by uuid", "uuid", itemUUID, "error", err.Error())
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			helper.NotFound(w, err)
+			helper.NotFound(w, r, err)
 			return
 		}
 
@@ -92,7 +92,7 @@ func (h *storeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Error("error when updating store", "storeUUID", storeUUID, "error", err.Error())
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			helper.NotFound(w, err)
+			helper.NotFound(w, r, err)
 		}
 		helper.InternalServerError(w, err)
 		return
@@ -115,7 +115,7 @@ func (h *storeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			h.log.Error("deleting store, store not found", "storeUUID", storeUUID, "error", err.Error())
-			helper.NotFound(w, err)
+			helper.NotFound(w, r, err)
 			return
 		}
 
