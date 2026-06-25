@@ -81,7 +81,7 @@ func (h *storeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	err := helper.ReadJSON(w, r, &storeReq)
 	if err != nil {
 		h.log.Error("error when parsing JSON for store update", "error", err.Error())
-		helper.BadRequest(w, err)
+		helper.BadRequest(w, r, err)
 		return
 	}
 

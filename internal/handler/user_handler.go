@@ -38,7 +38,7 @@ func (h *userHandler) Create(w http.ResponseWriter, r *http.Request) {
 	h.log.Info("create new user", "request", userRequest)
 
 	if err != nil {
-		helper.BadRequest(w, err)
+		helper.BadRequest(w, r, err)
 		return
 	}
 

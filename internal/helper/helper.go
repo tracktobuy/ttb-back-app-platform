@@ -38,7 +38,7 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	return nil
 }
 
-func BadRequest(w http.ResponseWriter, err error) {
+func BadRequest(w http.ResponseWriter, r *http.Request, err error, clientErrorDetails ...response.ClientErrorDetails) {
 
 	log := logger.NewLogger()
 	log.SetComponentName("helper")
@@ -49,6 +49,11 @@ func BadRequest(w http.ResponseWriter, err error) {
 		Code:      "BAD_REQUEST",
 		Message:   err.Error(),
 		Timestamp: DateTime(time.Now().UTC()),
+		Path:      r.URL.RequestURI(),
+	}
+
+	if len(clientErrorDetails) > 0 {
+		resp.Details = clientErrorDetails
 	}
 
 	log.Error("bad request", "response", resp)
@@ -141,7 +146,7 @@ func GetCookie(w http.ResponseWriter, r *http.Request) *cookie.Account {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
 			log.Error("cookie not found")
-			BadRequest(w, err)
+			BadRequest(w, r, err)
 		default:
 			log.Error("generic error", err.Error())
 			http.Error(w, "server error", http.StatusInternalServerError)
