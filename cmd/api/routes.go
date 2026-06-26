@@ -22,8 +22,8 @@ func (app *application) routes() http.Handler {
 
 	// Stores
 	mux.HandleFunc("GET /items/{itemUUID}/stores", app.handlers.StoreHandler.GetStoresByItemId)
-	mux.HandleFunc("PUT /stores/{storeId}", app.handlers.StoreHandler.Update)
-	mux.HandleFunc("DELETE /stores/{storeId}", app.handlers.StoreHandler.Delete)
+	mux.HandleFunc("PUT /stores/{storeUUID}", app.handlers.StoreHandler.Update)
+	mux.HandleFunc("DELETE /stores/{storeUUID}", app.handlers.StoreHandler.Delete)
 
 	// Users
 	mux.HandleFunc("POST /users", app.handlers.UserHandler.Create)

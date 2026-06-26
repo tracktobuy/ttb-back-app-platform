@@ -39,7 +39,7 @@ func NewStoreHandler(svc internal.Service) StoreHandler {
 func (h *storeHandler) GetStoresByItemId(w http.ResponseWriter, r *http.Request) {
 	h.log.SetMethodName("GetStoresByItemId")
 
-	itemUUID := r.PathValue("itemId")
+	itemUUID := r.PathValue("itemUUID")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
@@ -75,7 +75,7 @@ func (h *storeHandler) GetStoresByItemId(w http.ResponseWriter, r *http.Request)
 func (h *storeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	h.log.SetMethodName("Update")
 
-	storeUUID := r.PathValue("storeId")
+	storeUUID := r.PathValue("storeUUID")
 
 	var storeReq request.Store
 	err := helper.ReadJSON(w, r, &storeReq)
@@ -105,7 +105,7 @@ func (h *storeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	h.log.SetMethodName("Delete")
 
-	storeUUID := r.PathValue("storeId")
+	storeUUID := r.PathValue("storeUUID")
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
