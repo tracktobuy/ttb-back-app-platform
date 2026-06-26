@@ -18,10 +18,10 @@ func (app *application) routes() http.Handler {
 	// Items
 	mux.HandleFunc("POST /items", app.handlers.ItemHandler.Create)
 	mux.HandleFunc("GET /items", app.handlers.ItemHandler.GetAll)
-	mux.HandleFunc("GET /items/{itemId}", app.handlers.ItemHandler.GetByUUID)
+	mux.HandleFunc("GET /items/{itemUUID}", app.handlers.ItemHandler.GetByUUID)
 
 	// Stores
-	mux.HandleFunc("GET /items/{itemId}/stores", app.handlers.StoreHandler.GetStoresByItemId)
+	mux.HandleFunc("GET /items/{itemUUID}/stores", app.handlers.StoreHandler.GetStoresByItemId)
 	mux.HandleFunc("PUT /stores/{storeId}", app.handlers.StoreHandler.Update)
 	mux.HandleFunc("DELETE /stores/{storeId}", app.handlers.StoreHandler.Delete)
 

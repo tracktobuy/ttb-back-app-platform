@@ -152,7 +152,7 @@ func (h *itemHandler) GetByUUID(w http.ResponseWriter, r *http.Request) {
 
 	h.log.SetMethodName("GetByUUID")
 
-	itemUUID := r.PathValue("itemId")
+	itemUUID := r.PathValue("itemUUID")
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
