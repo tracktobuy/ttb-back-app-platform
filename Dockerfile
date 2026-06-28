@@ -1,5 +1,6 @@
 # Stage 1: Build
 FROM golang:1.26-alpine AS builder
+RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
