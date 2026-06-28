@@ -6,6 +6,9 @@ func (app *application) routes() http.Handler {
 
 	mux := http.NewServeMux()
 
+	// Health
+	mux.HandleFunc("GET /health", app.handlers.HealthHandler.HealthCheck)
+
 	// Accounts
 	mux.HandleFunc("POST /accounts", app.handlers.AccountHandler.CreateAccount)
 

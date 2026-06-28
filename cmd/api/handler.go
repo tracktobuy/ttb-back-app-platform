@@ -9,6 +9,7 @@ import (
 type Handler struct {
 	AccountHandler handler.AccountHandler
 	GroupHandler   handler.GroupHandler
+	HealthHandler  handler.HealthHandler
 	ItemHandler    handler.ItemHandler
 	UserHandler    handler.UserHandler
 	StoreHandler   handler.StoreHandler
@@ -21,6 +22,7 @@ func CreateHandlers(db *mongo.Database) *Handler {
 	return &Handler{
 		AccountHandler: handler.NewAccountHandler(services),
 		GroupHandler:   handler.NewGroupHandler(services),
+		HealthHandler:  handler.NewHealthHandler(),
 		ItemHandler:    handler.NewItemHandler(services),
 		UserHandler:    handler.NewUserHandler(services),
 		StoreHandler:   handler.NewStoreHandler(services),
