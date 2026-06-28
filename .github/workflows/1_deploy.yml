@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: ttb-containers/ttb-back-service
+  LIGHTSAIL_SERVICE: ttb-back-service
+  CONTAINER_APP: ttb-back-service-container
+  MONGO_URI: ${{ secrets.MONGO_URI }}
+  MONGO_DB: ${{ secrets.MONGO_DB }}
+  API_SERVER_PORT: 8080
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-actions-lightsail
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Docker image
+        run: |
+          IMAGE_URI=${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+
+      - name: Deploy to Lightsail Container Service
+        run: |
+          IMAGE_URI=${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          aws lightsail create-container-service-deployment \
+            --service-name "${{ env.LIGHTSAIL_SERVICE }}" \
+            --containers "{\"${{ env.CONTAINER_APP }}\":{\"image\":\"$IMAGE_URI\",\"ports\":{\"8080\":\"HTTP\"},\"environment\":{\"MONGO_URI\":\"${{ env.MONGO_URI }}\",\"MONGO_DB\":\"${{ env.MONGO_DB }}\",\"API_SERVER_PORT\":\"${{ env.API_SERVER_PORT }}\"}}}" \
+            --public-endpoint "{\"containerName\":\"${{ env.CONTAINER_APP }}\",\"containerPort\":8080,\"healthCheck\":{\"path\":\"/health\",\"successCodes\":\"200\"}}"
