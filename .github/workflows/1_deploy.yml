@@ -84,7 +84,10 @@ jobs:
             aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
             cd /home/ubuntu/opt/${{ github.event.repository.name }}   # change to wherever docker-compose.yml lives on the VPS
- 
+
+            export MONGO_URI=$MONGO_URI
+            export MONGO_DB=$MONGO_DB
+
             # write the values docker-compose.yml needs into .env
             cat > .env <<EOF
             ECR_REGISTRY=$ECR_REGISTRY
