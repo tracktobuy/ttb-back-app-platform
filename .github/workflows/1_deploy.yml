@@ -19,36 +19,76 @@ env:
   API_SERVER_PORT: 8080
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - uses: actions/checkout@v4
+ 
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: github-actions-lightsail
-
+          aws-region: ${{ secrets.AWS_REGION1 }}
+ 
       - name: Login to Amazon ECR
-        id: ecr-login
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push Docker image
-        run: |
-          IMAGE_URI=${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          docker build -t "$IMAGE_URI" .
-          docker push "$IMAGE_URI"
+ 
+      - name: Build, tag, and push image
         env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-
-      - name: Deploy to Lightsail Container Service
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          IMAGE_URI=${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          aws lightsail create-container-service-deployment \
-            --service-name "${{ env.LIGHTSAIL_SERVICE }}" \
-            --containers "{\"${{ env.CONTAINER_APP }}\":{\"image\":\"$IMAGE_URI\",\"ports\":{\"8080\":\"HTTP\"},\"environment\":{\"MONGO_URI\":\"${{ env.MONGO_URI }}\",\"MONGO_DB\":\"${{ env.MONGO_DB }}\",\"API_SERVER_PORT\":\"${{ env.API_SERVER_PORT }}\"}}}" \
-            --public-endpoint "{\"containerName\":\"${{ env.CONTAINER_APP }}\",\"containerPort\":8080,\"healthCheck\":{\"path\":\"/health\",\"successCodes\":\"200\"}}"
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag  $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+ 
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION1 }}
+ 
+      # Mints a short-lived (12h) ECR password using the runner's OIDC session.
+      # This is what the VPS uses to authenticate -- no AWS keys stored on the VPS.
+      - name: Generate ECR login password
+        id: ecr-password
+        run: echo "password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})" >> "$GITHUB_OUTPUT"
+ 
+      - name: Deploy to VPS over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ECR_PASSWORD: ${{ steps.ecr-password.outputs.password }}
+          ECR_REGISTRY: ${{ needs.build-and-push.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: ECR_PASSWORD,ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,MONGO_URI,MONGO_DB
+          script: |
+            set -e
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+ 
+            cd /opt/my-app   # change to wherever docker-compose.yml lives on the VPS
+ 
+            # write the values docker-compose.yml needs into .env
+            cat > .env <<EOF
+            ECR_REGISTRY=$ECR_REGISTRY
+            ECR_REPOSITORY=$ECR_REPOSITORY
+            IMAGE_TAG=$IMAGE_TAG
+            MONGO_URI=$MONGO_URI
+            MONGO_DB=$MONGO_DB
+            EOF
+ 
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
