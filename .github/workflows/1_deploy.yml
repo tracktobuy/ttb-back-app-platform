@@ -29,7 +29,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_VPS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
  
       - name: Login to Amazon ECR
@@ -50,22 +50,27 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      # Get short-lived AWS credentials from the OIDC session, then forward
+      # THOSE to the VPS (instead of a pre-generated ECR password). The VPS
+      # calls `aws ecr get-login-password` itself -- avoids forwarding a
+      # ~1400+ char token through ssh-action's env mechanism, which can
+      # arrive truncated/corrupted and cause "400 Bad Request" on login.
       - name: Configure AWS credentials (OIDC)
+        id: aws-creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION1 }}
- 
-      # Mints a short-lived (12h) ECR password using the runner's OIDC session.
-      # This is what the VPS uses to authenticate -- no AWS keys stored on the VPS.
-      - name: Generate ECR login password
-        id: ecr-password
-        run: echo "password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})" >> "$GITHUB_OUTPUT"
+          role-to-assume: ${{ secrets.AWS_VPS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          output-credentials: true
+          role-duration-seconds: 360   # 6 min -- these creds only need to live long enough for this SSH step
  
       - name: Deploy to VPS over SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
-          ECR_PASSWORD: ${{ steps.ecr-password.outputs.password }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws-creds.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-creds.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws-creds.outputs.aws-session-token }}
+          AWS_REGION: ${{ env.AWS_REGION }}
           ECR_REGISTRY: ${{ needs.build-and-push.outputs.registry }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
@@ -73,10 +78,10 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: ECR_PASSWORD,ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,MONGO_URI,MONGO_DB
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_SESSION_TOKEN,AWS_REGION,ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,MONGO_URI,MONGO_DB
           script: |
             set -e
-            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+            aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
  
             cd /opt/my-app   # change to wherever docker-compose.yml lives on the VPS
  
