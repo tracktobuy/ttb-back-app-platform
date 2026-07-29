@@ -62,7 +62,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_VPS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
           output-credentials: true
-          role-duration-seconds: 360   # 6 min -- these creds only need to live long enough for this SSH step
+          role-duration-seconds: 900   # 6 min -- these creds only need to live long enough for this SSH step
  
       - name: Deploy to VPS over SSH
         uses: appleboy/ssh-action@v1.0.3
