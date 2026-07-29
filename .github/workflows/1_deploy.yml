@@ -82,8 +82,8 @@ jobs:
           script: |
             set -e
             aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
- 
-            cd /opt/my-app   # change to wherever docker-compose.yml lives on the VPS
+
+            cd /home/ubuntu/opt/${{ github.event.repository.name }}   # change to wherever docker-compose.yml lives on the VPS
  
             # write the values docker-compose.yml needs into .env
             cat > .env <<EOF
