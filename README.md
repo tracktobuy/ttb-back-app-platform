@@ -15,6 +15,13 @@ Backend service for our app platform
 
 ## Run Locally with Docker
 
+### First build the image
+
+```
+docker build -t ttb-backend-api .
+```
+
+### Run the container
 ```
 docker run --name ttb-back-service \
 -e MONGO_HOST=mycluster.subdomain.mongodb.net/?appName=mycluster \
