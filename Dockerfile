@@ -13,8 +13,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./cmd/api
 # Stage 2: Runtime
 FROM gcr.io/distroless/static:nonroot
 
-ENV MONGO_URI=""
-ENV MONGO_DB=""
+ENV MONGO_HOST=""
+ENV MONGO_DB_USER=""
+ENV MONGO_DB_PASSWORD=""
+ENV MONGO_DB_NAME=""
 ENV API_SERVER_PORT=8080
 
 

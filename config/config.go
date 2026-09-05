@@ -31,7 +31,7 @@ func LoadConfig() *Config {
 
 	return &Config{
 		MongoURI:      mongo_srv,
-		MongoDB:       os.Getenv("MONGO_DB"),
+		MongoDB:       os.Getenv("MONGO_DB_NAME"),
 		ApiServerPort: os.Getenv("API_SERVER_PORT"),
 	}
 }
