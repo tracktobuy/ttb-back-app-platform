@@ -19,8 +19,18 @@ func LoadConfig() *Config {
 		log.Println("No .env file found, reading from environment...")
 	}
 
+	mongo_user := os.Getenv("MONGO_DB_USER")
+	mongo_pass := os.Getenv("MONGO_DB_PASSWORD")
+	mongo_host := os.Getenv("MONGO_HOST")
+
+	mongo_srv := "mongodb+srv://" + mongo_user + ":" + mongo_pass + "@" + mongo_host
+
+	if mongo_user == "" || mongo_pass == "" || mongo_host == "" {
+		log.Fatal("Missing required environment variables for MongoDB connection")
+	}
+
 	return &Config{
-		MongoURI:      os.Getenv("MONGO_URI"),
+		MongoURI:      mongo_srv,
 		MongoDB:       os.Getenv("MONGO_DB"),
 		ApiServerPort: os.Getenv("API_SERVER_PORT"),
 	}
