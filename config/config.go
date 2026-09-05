@@ -22,6 +22,8 @@ func LoadConfig() *Config {
 	mongo_user := os.Getenv("MONGO_DB_USER")
 	mongo_pass := os.Getenv("MONGO_DB_PASSWORD")
 	mongo_host := os.Getenv("MONGO_HOST")
+	mongo_db_name := os.Getenv("MONGO_DB_NAME")
+	mongo_api_server_port := os.Getenv("API_SERVER_PORT")
 
 	mongo_srv := "mongodb+srv://" + mongo_user + ":" + mongo_pass + "@" + mongo_host
 
@@ -31,7 +33,7 @@ func LoadConfig() *Config {
 
 	return &Config{
 		MongoURI:      mongo_srv,
-		MongoDB:       os.Getenv("MONGO_DB_NAME"),
-		ApiServerPort: os.Getenv("API_SERVER_PORT"),
+		MongoDB:       mongo_db_name,
+		ApiServerPort: mongo_api_server_port,
 	}
 }

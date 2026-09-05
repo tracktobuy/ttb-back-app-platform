@@ -14,21 +14,21 @@ type application struct {
 
 func main() {
 
-	db := LoadDatabase()
+	cfg := config.LoadConfig()
+
+	db := LoadDatabase(cfg)
 	defer db.Client().Disconnect(context.Background())
 
 	app := &application{
 		handlers: CreateHandlers(db),
 	}
 
-	app.run()
+	app.run(cfg)
 }
 
-func LoadDatabase() *mongo.Database {
+func LoadDatabase(cfg *config.Config) *mongo.Database {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	cfg := config.LoadConfig()
 
 	client := config.MongoConnect(ctx, cfg)
 
