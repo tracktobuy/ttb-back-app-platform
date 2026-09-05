@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ttb-config-map
+data:
+  mongo-db-host: ttbcluster.5ixsmyc.mongodb.net/?appName=ttbcluster
+  mongo-db-name: ttb

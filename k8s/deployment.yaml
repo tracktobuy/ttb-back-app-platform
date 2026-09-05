@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ttb-backend-api-deployment
+  labels:
+    app: ttb-backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ttb-backend-api
+  template:
+    metadata:
+      labels:
+        app: ttb-backend-api
+    spec:
+      containers:
+        - name: ttb-backend-api
+          image: ttb-backend-api
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGO_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: ttb-config-map
+                  key: mongo-db-host
+            - name: MONGO_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ttb-secrets
+                  key: mongo-db-user
+            - name: MONGO_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ttb-secrets 
+                  key: mongo-db-pass
+            - name: MONGO_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: ttb-config-map
+                  key: mongo-db-name
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ttb-backend-api-service
+spec:
+  selector:
+    app: ttb-backend-api
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
