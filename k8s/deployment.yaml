@@ -41,6 +41,11 @@ spec:
                 configMapKeyRef:
                   name: ttb-config-map
                   key: mongo-db-name
+            - name: CORS_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: ttb-config-map
+                  key: allowed-cors
 ---
 
 apiVersion: v1
