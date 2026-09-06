@@ -11,6 +11,7 @@ Backend service for our app platform
 | `MONGO_DB_PASSWORD` | Password used to authenticate with the MongoDB database | Yes|
 | `MONGO_DB_NAME` | Name of the MongoDB database to connect to | Yes |
 | `API_SERVER_PORT` | Port on which the API server listens. Default: 8080 | No |
+| `CORS_ALLOWED_ORIGINS` | Comma separated list of allowed origins | No |
 
 
 ## Run Locally with Docker
