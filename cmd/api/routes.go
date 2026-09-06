@@ -31,5 +31,5 @@ func (app *application) routes() http.Handler {
 	// Users
 	mux.HandleFunc("POST /users", app.handlers.UserHandler.Create)
 
-	return mux
+	return app.enableCORS(mux)
 }

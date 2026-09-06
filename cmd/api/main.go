@@ -9,6 +9,7 @@ import (
 )
 
 type application struct {
+	config   *config.Config
 	handlers *Handler
 }
 
@@ -20,6 +21,7 @@ func main() {
 	defer db.Client().Disconnect(context.Background())
 
 	app := &application{
+		config:   cfg,
 		handlers: CreateHandlers(db),
 	}
 
