@@ -24,27 +24,27 @@ spec:
             - name: MONGO_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: ttb-config-map
+                  name: ttb-backend-api-configmap
                   key: mongo-db-host
             - name: MONGO_DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: ttb-secrets
+                  name: ttb-backend-api-secrets
                   key: mongo-db-user
             - name: MONGO_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: ttb-secrets 
+                  name: ttb-backend-api-secrets 
                   key: mongo-db-pass
             - name: MONGO_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: ttb-config-map
+                  name: ttb-backend-api-configmap
                   key: mongo-db-name
             - name: CORS_ALLOWED_ORIGINS
               valueFrom:
                 configMapKeyRef:
-                  name: ttb-config-map
+                  name: ttb-backend-api-configmap
                   key: allowed-cors
 ---
 
