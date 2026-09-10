@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -15,9 +14,7 @@ func (app *application) run(cfg *config.Config) {
 		Handler: app.routes(),
 	}
 
-	runningLog := fmt.Sprintf("Server is running on port :%s", cfg.ApiServerPort)
-
-	log.Printf(runningLog)
+	log.Printf("Server is running on port :%s", cfg.ApiServerPort)
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
